@@ -1,20 +1,19 @@
-/**
- * Node.js API Starter Kit (https://reactstarter.com/nodejs)
- *
- * Copyright © 2016-present Kriasoft, LLC. All rights reserved.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE.txt file in the root directory of this source tree.
- */
+// @flow
 
-/* @flow */
+import {
+  GraphQLObjectType,
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLInt,
+  GraphQLString,
+} from 'graphql'
 
-import { GraphQLObjectType, GraphQLList, GraphQLNonNull, GraphQLInt, GraphQLString } from 'graphql';
-import { globalIdField } from 'graphql-relay';
-import { nodeInterface } from './Node';
+import { globalIdField } from 'graphql-relay'
 
-import CommentType from './CommentType';
-import UserType from './UserType';
+import { nodeInterface } from './Node'
+
+import CommentType from './CommentType'
+import UserType from './UserType'
 
 export default new GraphQLObjectType({
   name: 'Story',
@@ -26,7 +25,7 @@ export default new GraphQLObjectType({
     author: {
       type: new GraphQLNonNull(UserType),
       resolve(parent, args, { users }) {
-        return users.load(parent.author_id);
+        return users.load(parent.author_id)
       },
     },
 
@@ -45,36 +44,36 @@ export default new GraphQLObjectType({
     comments: {
       type: new GraphQLList(CommentType),
       resolve(parent, args, { commentsByStory }) {
-        return commentsByStory.load(parent.id);
+        return commentsByStory.load(parent.id)
       },
     },
 
     pointsCount: {
       type: new GraphQLNonNull(GraphQLInt),
       resolve(parent, args, { storyPointsCount }) {
-        return storyPointsCount.load(parent.id);
+        return storyPointsCount.load(parent.id)
       },
     },
 
     commentsCount: {
       type: new GraphQLNonNull(GraphQLInt),
       resolve(parent, args, { storyCommentsCount }) {
-        return storyCommentsCount.load(parent.id);
+        return storyCommentsCount.load(parent.id)
       },
     },
 
     createdAt: {
       type: new GraphQLNonNull(GraphQLString),
       resolve(parent) {
-        return parent.created_at;
+        return parent.created_at
       },
     },
 
     updatedAt: {
       type: new GraphQLNonNull(GraphQLString),
       resolve(parent) {
-        return parent.updated_at;
+        return parent.updated_at
       },
     },
   },
-});
+})

@@ -1,12 +1,12 @@
 # GraphQL Schema
 
 ```js
-import { GraphQLSchema, GraphQLObjectType } from 'graphql';
+import { GraphQLSchema, GraphQLObjectType } from 'graphql'
 
-import { me } from './User';
-import { node, nodes } from './Node';
-import { stories, createStory, updateStory } from './Story';
-import { createComment, updateComment } from './Comment';
+import { me } from './User'
+import { node, nodes } from './Node'
+import { stories, createStory, updateStory } from './Story'
+import { createComment, updateComment } from './Comment'
 
 export default new GraphQLSchema({
   query: new GraphQLObjectType({
@@ -27,7 +27,7 @@ export default new GraphQLSchema({
       updateComment,
     },
   }),
-});
+})
 ```
 
 ## The Top-level Fields and Mutations
