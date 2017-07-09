@@ -27,8 +27,15 @@ docker.on('exit', () => {
   ssh.stdin.end()
 })
 ssh.on('exit', () => {
-  if (process.argv.includes('--no-up')) return
+  if (process.argv.includes('--no-up')) {
+    return
+  }
+
   cp.spawnSync('ssh', ['-C', host, 'docker-compose', '-f', composeFile, 'up', '-d'], { stdio: 'inherit' })
-  if (process.argv.includes('--no-prune')) return
+
+  if (process.argv.includes('--no-prune')) {
+    return
+  }
+
   cp.spawnSync('ssh', ['-C', host, 'docker', 'image', 'prune', '-a', '-f'], { stdio: 'inherit' })
 })

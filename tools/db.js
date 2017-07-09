@@ -8,9 +8,11 @@ const task = require('./task')
 const commands = ['version', 'migrate', 'rollback', 'migration', 'seed']
 const command = process.argv[2]
 
+const { DATABASE_URL } = process.env
+
 const config = {
   client: 'pg',
-  connection: process.env.DATABASE_URL,
+  connection: DATABASE_URL,
   migrations: {
     tableName: 'migrations',
   },

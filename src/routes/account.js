@@ -8,25 +8,25 @@ import { compose, compact } from 'lodash/fp'
 
 const router = new Router()
 
-// External login providers. Also see src/passport.js.
+// External login providers.
 const loginProviders = [
   {
     provider: 'facebook',
     options: { scope: ['email', 'user_location'] },
   },
-  {
-    provider: 'google',
-    options: { scope: 'profile email' },
-  },
-  {
-    provider: 'twitter',
-    options: {},
-  },
+  // {
+  //   provider: 'google',
+  //   options: { scope: 'profile email' },
+  // },
+  // {
+  //   provider: 'twitter',
+  //   options: {},
+  // },
 ]
 
 // '/about' => ''
 // http://localhost:3000/some/page => http://localhost:3000
-function getOrigin(url: string) {
+function getOrigin(url: string): string {
   if (!url || url.startsWith('/')) {
     return ''
   }
@@ -41,7 +41,7 @@ function getOrigin(url: string) {
 
 // '/about' => `true` (all relative URL paths are allowed)
 // 'http://localhost:3000/about' => `true` (but only if its origin is whitelisted)
-function isValidReturnURL(url: string) {
+function isValidReturnURL(url: string): boolean {
   if (url.startsWith('/')) {
     return true
   }
@@ -93,21 +93,26 @@ function getSuccessRedirect(req) {
 
 // Registers route handlers for the external login providers
 loginProviders.forEach(({ provider, options }) => {
-  router.get(
-    `/login/${provider}`,
-    function handleSucces(req, res, next) {
+  const handleLogin = compose(
+    (req, res, next) => {
       req.session.returnTo = getSuccessRedirect(req); next()
     },
     passport.authenticate(provider, { failureFlash: true, ...options }),
   )
 
-  router.get(`/login/${provider}/return`, function handleReturn(req, res, next) {
-    return passport.authenticate(provider, {
+  const handleReturn = (req, res, next) => {
+    const { returnTo } = req.session
+    const authenticate = passport.authenticate(provider, {
       successReturnToOrRedirect: true,
       failureFlash: true,
-      failureRedirect: `${getOrigin(req.session.returnTo)}/login`,
-    })(req, res, next)
-  })
+      failureRedirect: `${getOrigin(returnTo)}/login`,
+    })
+
+    return authenticate(req, res, next)
+  }
+
+  router.get(`/login/${provider}`, handleLogin)
+  router.get(`/login/${provider}/return`, handleReturn)
 })
 
 // Remove the `user` object from the session. Example:

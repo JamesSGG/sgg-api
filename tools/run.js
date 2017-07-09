@@ -3,6 +3,7 @@
 const fs = require('fs')
 const path = require('path')
 const cp = require('child_process')
+
 const pkg = require('../package.json')
 const task = require('./task')
 
@@ -32,7 +33,10 @@ try {
   build = require('./build')
 }
 catch (err) {
-  if (err.code !== 'MODULE_NOT_FOUND') throw err
+  if (err.code !== 'MODULE_NOT_FOUND') {
+    throw err
+  }
+
   // Install Node.js modules with Yarn
   cp.spawnSync('yarn', ['install', '--no-progress'], { stdio: 'inherit' })
 
@@ -40,9 +44,11 @@ catch (err) {
   try {
     const Module = require('module')
     const m = new Module()
-    // eslint-disable-next-line
-    m._compile(fs.readFileSync('./tools/build.js', 'utf8'), path.resolve('./tools/build.js'));
-  } catch (error) { } // eslint-disable-line
+    m._compile(fs.readFileSync('./tools/build.js', 'utf8'), path.resolve('./tools/build.js'))
+  }
+  catch (error) {
+    // Do nothing
+  }
 
   // Reload dependencies
   build = require('./build')
@@ -50,51 +56,95 @@ catch (err) {
 
 // Launch `node build/server.js` on a background thread
 function spawnServer() {
-  return cp.spawn('node',
-    [
-      // Pre-load application dependencies to improve "hot reload" restart time
-      ...Object.keys(pkg.dependencies).reduce((requires, val) => requires.concat(['--require', val]), []),
-      // If the parent Node.js process is running in debug (inspect) mode,
-      // launch a debugger for Express.js app on the next port
-      ...process.execArgv,
-      ...process.execArgv.reduce((result, arg) => {
-        const match = arg.match(/^--(?:inspect|debug)-port=(\S+:|)(\d+)$/)
-        return match ? [`--inspect-port=${match[1]}${Number(match[2]) + 1}`] : result
-      }, isDebug ? ['--inspect-port=9230'] : []),
-      '--no-lazy',
-      // Enable "hot reload", it only works when debugger is off
-      ...(isDebug ? ['./server.js'] : [
-        '--eval',
-        'process.stdin.on("data", data => { if (data.toString() === "load") require("./server.js"); });',
-      ]),
-    ],
-    { cwd: './build', stdio: ['pipe', 'inherit', 'inherit'], timeout: 3000 })
+  const appDepsArgs = Object.keys(pkg.dependencies).reduce(
+    (args, dep) => args.concat(['--require', dep]),
+    [],
+  )
+
+  const debugArgs = process.execArgv.reduce(
+    (result, arg) => {
+      const match = arg.match(/^--(?:inspect|debug)-port=(\S+:|)(\d+)$/)
+      return match ? [`--inspect-port=${match[1]}${Number(match[2]) + 1}`] : result
+    },
+    isDebug ? ['--inspect-port=9230'] : [],
+  )
+
+  const hotReloadArgs = (
+    isDebug
+    ? ['./server.js']
+    : [
+      '--eval',
+      'process.stdin.on("data", data => { if (data.toString() === "load") require("./server.js"); });',
+    ]
+  )
+
+  const args = [
+    // Pre-load application dependencies to improve "hot reload" restart time
+    ...appDepsArgs,
+    // If the parent Node.js process is running in debug (inspect) mode,
+    // launch a debugger for Express.js app on the next port
+    ...process.execArgv,
+    ...debugArgs,
+    '--no-lazy',
+    // Enable "hot reload", it only works when debugger is off
+    ...hotReloadArgs,
+  ]
+
+  const spawnOptions = {
+    cwd: './build',
+    stdio: ['pipe', 'inherit', 'inherit'],
+    timeout: 3000,
+  }
+
+  return cp.spawn('node', args, spawnOptions)
 }
 
-module.exports = task('run', () => Promise.resolve()
+module.exports = task('run', function runTask() {
   // Migrate database schema to the latest version
-  .then(() => {
+  function dbMigrate() {
     cp.spawnSync('node', ['tools/db.js', 'migrate'], { stdio: 'inherit' })
-  })
+  }
+
   // Compile and launch the app in watch mode, restart it after each rebuild
-  .then(() => build({
-    watch: true,
-    onComplete() {
-      if (server) server.kill('SIGTERM')
-      if (isDebug) {
-        server = spawnServer()
-      }
-      else {
-        server = serverQueue.splice(0, 1)[0] || spawnServer()
-        server.stdin.write('load') // this works faster than IPC
-        while (serverQueue.length < 3) serverQueue.push(spawnServer())
-      }
-    },
-  }))
-  // Resolve the promise on exit
-  .then(() => new Promise((resolve) => {
-    process.once('exit', () => {
-      if (server) server.kill()
-      resolve()
+  function compileAndLaunchApp() {
+    return build({
+      watch: true,
+      onComplete() {
+        if (server) {
+          server.kill('SIGTERM')
+        }
+
+        if (isDebug) {
+          server = spawnServer()
+        }
+        else {
+          server = serverQueue.splice(0, 1)[0] || spawnServer()
+          server.stdin.write('load') // this works faster than IPC
+
+          while (serverQueue.length < 3) {
+            serverQueue.push(spawnServer())
+          }
+        }
+      },
     })
-  })))
+  }
+
+  // Resolve the promise on exit
+  function handleExit() {
+    return new Promise((resolve) => {
+      process.once('exit', () => {
+        if (server) {
+          server.kill()
+        }
+
+        resolve()
+      })
+    })
+  }
+
+  return Promise
+    .resolve()
+    .then(dbMigrate)
+    .then(compileAndLaunchApp)
+    .then(handleExit)
+})

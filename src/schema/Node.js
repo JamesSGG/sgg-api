@@ -7,18 +7,42 @@ const { nodeInterface, nodeField: node, nodesField: nodes } = nodeDefinitions(
   (globalId, context) => {
     const { type, id } = fromGlobalId(globalId)
 
-    if (type === 'User') return context.users.load(id)
-    if (type === 'Story') return context.stories.load(id)
-    if (type === 'Comment') return context.comments.load(id)
+    switch (type) {
+      case 'User': {
+        return context.users.load(id)
+      }
 
-    return null
+      case 'Story': {
+        return context.stories.load(id)
+      }
+
+      case 'Comment': {
+        return context.comments.load(id)
+      }
+
+      default: {
+        return null
+      }
+    }
   },
   (obj) => {
-    if (obj.__type === 'User') return require('./UserType').default
-    if (obj.__type === 'Story') return require('./StoryType').default
-    if (obj.__type === 'Comment') return require('./CommentType').default
+    switch (obj.__type) {
+      case 'User': {
+        return require('./UserType').default
+      }
 
-    return null
+      case 'Story': {
+        return require('./StoryType').default
+      }
+
+      case 'Comment': {
+        return require('./CommentType').default
+      }
+
+      default: {
+        return null
+      }
+    }
   },
 )
 

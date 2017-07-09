@@ -1,6 +1,7 @@
 // @flow
 
 import validator from 'validator'
+
 import {
   GraphQLNonNull,
   GraphQLID,

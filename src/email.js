@@ -5,15 +5,21 @@ import path from 'path'
 import nodemailer from 'nodemailer'
 import handlebars from 'handlebars'
 
+const { NODE_ENV } = process.env
+
 // TODO: Configure email transport for the production environment
 // https://nodemailer.com/smtp/
-const { from, ...config } = process.env.NODE_ENV === 'production' ? {
-  from: 'no-reply@example.com',
-  streamTransport: true,
-} : {
-  from: 'no-reply@example.com',
-  streamTransport: true,
-}
+const { from, ...config } = (
+  NODE_ENV === 'production'
+  ? {
+    from: 'no-reply@example.com',
+    streamTransport: true,
+  }
+  : {
+    from: 'no-reply@example.com',
+    streamTransport: true,
+  }
+)
 
 const templates = new Map()
 const baseDir = path.resolve(__dirname, 'emails')
@@ -24,7 +30,6 @@ handlebars.registerHelper('t', (key, options) => options.data.root.t(key, option
 
 function loadTemplate(filename) {
   const m = new module.constructor()
-  // eslint-disable-next-line no-underscore-dangle
   m._compile(fs.readFileSync(filename, 'utf8'), filename)
   return handlebars.template(m.exports)
 }

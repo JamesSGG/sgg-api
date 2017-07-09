@@ -6,18 +6,18 @@ import app from './app'
 import db from './db'
 import redis from './redis'
 
-const { PORT, HOSTNAME } = process.env
-
-const port = PORT || 8080
-const host = HOSTNAME || '0.0.0.0'
+const {
+  PORT = 8080,
+  HOSTNAME = '0.0.0.0',
+} = process.env
 
 // Launch Node.js server
-const server = app.listen(port, host, () => {
-  console.log(`API server is listening on http://${host}:${port}`)
+const server = app.listen(PORT, HOSTNAME, () => {
+  console.log(`API server is listening on http://${HOSTNAME}:${PORT}`)
 })
 
 // Shutdown Node.js app gracefully
-function handleExit(options, err) {
+function handleExit(options, error) {
   const { cleanup, exit } = options
 
   if (cleanup) {
@@ -31,7 +31,7 @@ function handleExit(options, err) {
           }
         })
       }
-      catch (_err) {
+      catch (_error) {
         if (i === actions.length - 1) {
           process.exit()
         }
@@ -39,8 +39,8 @@ function handleExit(options, err) {
     })
   }
 
-  if (err) {
-    console.log(err.stack)
+  if (error) {
+    console.log(error.stack)
   }
 
   if (exit) {

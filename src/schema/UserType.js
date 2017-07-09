@@ -34,7 +34,11 @@ export default new GraphQLObjectType({
     emails: {
       type: new GraphQLList(EmailType),
       resolve(parent, args, { user }) {
-        return user && parent.id === user.id ? parent.emails : null
+        if (user && user.id === parent.id) {
+          return parent.emails
+        }
+
+        return null
       },
     },
   },
