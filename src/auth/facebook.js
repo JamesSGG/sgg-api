@@ -16,7 +16,7 @@ const { FACEBOOK_ID, FACEBOOK_SECRET } = process.env
 export default new FacebookStrategy({
   clientID: FACEBOOK_ID,
   clientSecret: FACEBOOK_SECRET,
-  profileFields: ['name', 'email', 'picture', 'link', 'locale', 'timezone', 'verified'],
+  profileFields: ['name', 'email', 'picture', 'verified'],
   callbackURL: '/login/facebook/return',
   passReqToCallback: true,
 }, async (req, accessToken, refreshToken, profile, done) => {

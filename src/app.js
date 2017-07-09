@@ -28,6 +28,8 @@ const {
   SESSION_SECRET,
 } = process.env
 
+const isDev = NODE_ENV !== 'production'
+
 i18next
   .use(LanguageDetector)
   .use(i18nextBackend)
@@ -84,8 +86,8 @@ app.use('/graphql', expressGraphQL((req) => ({
     user: req.user,
     ...DataLoaders.create(),
   },
-  graphiql: NODE_ENV !== 'production',
-  pretty: NODE_ENV !== 'production',
+  graphiql: isDev,
+  pretty: isDev,
   formatError: (error) => ({
     message: error.message,
     state: error.originalError && error.originalError.state,
@@ -95,7 +97,7 @@ app.use('/graphql', expressGraphQL((req) => ({
 })))
 
 // The following routes are intended to be used in development mode only
-if (NODE_ENV !== 'production') {
+if (isDev) {
   // A route for testing email templates
   app.get('/:email(email|emails)/:template', (req, res) => {
     const message = email.render(req.params.template, { t: req.t, v: 123 })

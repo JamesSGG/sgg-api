@@ -46,7 +46,11 @@ export default async function login(req, provider, profile, tokens) {
   }
 
   const loginKeys = { user_id: user.id, provider, id: profile.id }
-  const { count } = await db.table('logins').where(loginKeys).count('id').first()
+  const { count } = await db
+    .table('logins')
+    .where(loginKeys)
+    .count('id')
+    .first()
 
   if (count === '0') {
     await db
