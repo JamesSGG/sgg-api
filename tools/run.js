@@ -58,7 +58,7 @@ catch (err) {
 function spawnServer() {
   const appDepsArgs = Object.keys(pkg.dependencies).reduce(
     (args, dep) => args.concat(['--require', dep]),
-    [],
+    []
   )
 
   const debugArgs = process.execArgv.reduce(
@@ -66,7 +66,7 @@ function spawnServer() {
       const match = arg.match(/^--(?:inspect|debug)-port=(\S+:|)(\d+)$/)
       return match ? [`--inspect-port=${match[1]}${Number(match[2]) + 1}`] : result
     },
-    isDebug ? ['--inspect-port=9230'] : [],
+    isDebug ? ['--inspect-port=9230'] : []
   )
 
   const hotReloadArgs = (
