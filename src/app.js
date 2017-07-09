@@ -11,15 +11,22 @@ import flash from 'express-flash'
 import i18next from 'i18next'
 import i18nextMiddleware, { LanguageDetector } from 'i18next-express-middleware'
 import i18nextBackend from 'i18next-node-fs-backend'
-import expressGraphQL from 'express-graphql'
 import PrettyError from 'pretty-error'
+import expressGraphQL from 'express-graphql'
 import { printSchema } from 'graphql'
+
 import email from './email'
 import redis from './redis'
-import passport from './passport'
+import passport from './auth'
 import schema from './schema'
 import DataLoaders from './DataLoaders'
 import accountRoutes from './routes/account'
+
+const {
+  NODE_ENV,
+  CORS_ORIGIN,
+  SESSION_SECRET,
+} = process.env
 
 i18next
   .use(LanguageDetector)
@@ -42,11 +49,11 @@ const app = express()
 app.set('trust proxy', 'loopback')
 
 app.use(cors({
+  credentials: true,
   origin(origin, cb) {
-    const whitelist = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : []
+    const whitelist = CORS_ORIGIN ? CORS_ORIGIN.split(',') : []
     cb(null, whitelist.includes(origin))
   },
-  credentials: true,
 }))
 
 app.use(cookieParser())
@@ -57,7 +64,7 @@ app.use(session({
   name: 'sid',
   resave: true,
   saveUninitialized: true,
-  secret: process.env.SESSION_SECRET,
+  secret: SESSION_SECRET,
 }))
 app.use(i18nextMiddleware.handle(i18next))
 app.use(passport.initialize())
@@ -77,8 +84,8 @@ app.use('/graphql', expressGraphQL((req) => ({
     user: req.user,
     ...DataLoaders.create(),
   },
-  graphiql: process.env.NODE_ENV !== 'production',
-  pretty: process.env.NODE_ENV !== 'production',
+  graphiql: NODE_ENV !== 'production',
+  pretty: NODE_ENV !== 'production',
   formatError: (error) => ({
     message: error.message,
     state: error.originalError && error.originalError.state,
@@ -88,7 +95,7 @@ app.use('/graphql', expressGraphQL((req) => ({
 })))
 
 // The following routes are intended to be used in development mode only
-if (process.env.NODE_ENV !== 'production') {
+if (NODE_ENV !== 'production') {
   // A route for testing email templates
   app.get('/:email(email|emails)/:template', (req, res) => {
     const message = email.render(req.params.template, { t: req.t, v: 123 })
@@ -98,7 +105,8 @@ if (process.env.NODE_ENV !== 'production') {
   // A route for testing authentication/authorization
   app.get('/', (req, res) => {
     if (req.user) {
-      res.send(`<p>${req.t('Welcome, {{user}}!', { user: req.user.displayName })} (<a href="javascript:fetch('/login/clear', { method: 'POST', credentials: 'include' }).then(() => window.location = '/')">${req.t('log out')}</a>)</p>`)
+      const { displayName } = req.user
+      res.send(`<p>${req.t('Welcome, {{user}}!', { user: displayName })} (<a href="javascript:fetch('/login/clear', { method: 'POST', credentials: 'include' }).then(() => window.location = '/')">${req.t('log out')}</a>)</p>`)
     }
     else {
       res.send(`<p>${req.t('Welcome, guest!')} (<a href="/login/facebook">${req.t('sign in')}</a>)</p>`)
@@ -106,12 +114,12 @@ if (process.env.NODE_ENV !== 'production') {
   })
 }
 
-const pe = new PrettyError()
-pe.skipNodeFiles()
-pe.skipPackage('express')
+const prettyError = new PrettyError()
+prettyError.skipNodeFiles()
+prettyError.skipPackage('express')
 
 app.use((err, req, res, next) => {
-  process.stderr.write(pe.render(err))
+  process.stderr.write(prettyError.render(err))
   next()
 })
 
