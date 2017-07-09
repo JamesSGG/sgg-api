@@ -93,12 +93,15 @@ function getSuccessRedirect(req) {
 
 // Registers route handlers for the external login providers
 loginProviders.forEach(({ provider, options }) => {
-  const handleLogin = compose(
-    (req, res, next) => {
-      req.session.returnTo = getSuccessRedirect(req); next()
-    },
-    passport.authenticate(provider, { failureFlash: true, ...options }),
-  )
+  const setReturnTo = (req, res, next) => {
+    req.session.returnTo = getSuccessRedirect(req)
+    next()
+  }
+
+  const handleLogin = passport.authenticate(provider, {
+    failureFlash: true,
+    ...options,
+  })
 
   const handleReturn = (req, res, next) => {
     const { returnTo } = req.session
@@ -111,7 +114,7 @@ loginProviders.forEach(({ provider, options }) => {
     return authenticate(req, res, next)
   }
 
-  router.get(`/login/${provider}`, handleLogin)
+  router.get(`/login/${provider}`, setReturnTo, handleLogin)
   router.get(`/login/${provider}/return`, handleReturn)
 })
 
