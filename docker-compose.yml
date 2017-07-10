@@ -26,15 +26,20 @@ services:
     depends_on:
       - db
       - redis
+    # SESSION_SECRET, FACEBOOK_ID, and FACEBOOK_SECRET are defined in `.env`.
+    # We define them here without a value to pass them down to the container.
     environment:
-      - CORS_ORIGIN=http://localhost:3001,http://localhost:3000
+      - CORS_ORIGIN=http://localhost:3100
       - DATABASE_URL=postgres://postgres@db:5432/dev
       - DATABASE_DEBUG=false
       - REDIS_URL=redis://redis:6379/0
+      - SESSION_SECRET
+      - FACEBOOK_ID
+      - FACEBOOK_SECRET
     expose:
       - "8080"
     ports:
-      - "127.0.0.1:9229:9229" # V8 inspector (when NODE_DEBUG=true)
+      - "9229:9229" # V8 inspector (when NODE_DEBUG=true)
     volumes:
       - yarn:/root/.cache/yarn
       - ./:/usr/src/app

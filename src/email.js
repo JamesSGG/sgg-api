@@ -7,19 +7,21 @@ import handlebars from 'handlebars'
 
 const { NODE_ENV } = process.env
 
+const isDev = NODE_ENV !== 'production'
+
 // TODO: Configure email transport for the production environment
 // https://nodemailer.com/smtp/
-const { from, ...config } = (
-  NODE_ENV === 'production'
-  ? {
-    from: 'no-reply@example.com',
-    streamTransport: true,
-  }
-  : {
-    from: 'no-reply@example.com',
-    streamTransport: true,
-  }
-)
+const prodConfig = {
+  from: 'no-reply@example.com',
+  streamTransport: true,
+}
+
+const devConfig = {
+  from: 'no-reply@example.com',
+  streamTransport: true,
+}
+
+const { from, ...config } = isDev ? devConfig : prodConfig
 
 const templates = new Map()
 const baseDir = path.resolve(__dirname, 'emails')

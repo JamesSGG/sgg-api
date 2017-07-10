@@ -56,38 +56,44 @@ catch (err) {
 
 // Launch `node build/server.js` on a background thread
 function spawnServer() {
-  const appDepsArgs = Object.keys(pkg.dependencies).reduce(
-    (args, dep) => args.concat(['--require', dep]),
-    []
-  )
+  const getAppDepsArgs = () => {
+    const defaultValue = []
+    const reducer = (args, dep) => args.concat(['--require', dep])
 
-  const debugArgs = process.execArgv.reduce(
-    (result, arg) => {
+    return Object.keys(pkg.dependencies).reduce(reducer, defaultValue)
+  }
+
+  const getDebugArgs = () => {
+    const defaultValue = isDebug ? ['--inspect-port=9229'] : ['--inspect-port=9229']
+    const reducer = (result, arg) => {
       const match = arg.match(/^--(?:inspect|debug)-port=(\S+:|)(\d+)$/)
       return match ? [`--inspect-port=${match[1]}${Number(match[2]) + 1}`] : result
-    },
-    isDebug ? ['--inspect-port=9230'] : []
-  )
+    }
 
-  const hotReloadArgs = (
-    isDebug
-    ? ['./server.js']
-    : [
+    return process.execArgv.reduce(reducer, defaultValue)
+  }
+
+  const getHotReloadArgs = () => {
+    if (isDebug) {
+      return ['./server.js']
+    }
+
+    return [
       '--eval',
       'process.stdin.on("data", data => { if (data.toString() === "load") require("./server.js"); });',
     ]
-  )
+  }
 
   const args = [
     // Pre-load application dependencies to improve "hot reload" restart time
-    ...appDepsArgs,
+    ...getAppDepsArgs(),
     // If the parent Node.js process is running in debug (inspect) mode,
     // launch a debugger for Express.js app on the next port
     ...process.execArgv,
-    ...debugArgs,
+    ...getDebugArgs(),
     '--no-lazy',
     // Enable "hot reload", it only works when debugger is off
-    ...hotReloadArgs,
+    ...getHotReloadArgs(),
   ]
 
   const spawnOptions = {
@@ -120,10 +126,7 @@ module.exports = task('run', function runTask() {
         else {
           server = serverQueue.splice(0, 1)[0] || spawnServer()
           server.stdin.write('load') // this works faster than IPC
-
-          while (serverQueue.length < 3) {
-            serverQueue.push(spawnServer())
-          }
+          serverQueue.push(spawnServer())
         }
       },
     })

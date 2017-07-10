@@ -3,6 +3,7 @@
 // Source https://github.com/membership/membership.db
 module.exports.up = async (db) => {
   await db.raw('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";')
+  await db.raw('CREATE EXTENSION IF NOT EXISTS "hstore";')
 
   // User accounts
   await db.schema.createTable('users', (table) => {

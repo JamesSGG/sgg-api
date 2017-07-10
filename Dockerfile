@@ -9,4 +9,4 @@ COPY . .
 # Install Node.js dependencies
 RUN yarn install --production --no-progress
 
-CMD [ "node", "build/server.js" ]
+CMD ["node", "build/server.js"]
