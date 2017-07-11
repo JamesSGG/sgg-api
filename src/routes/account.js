@@ -70,6 +70,9 @@ function isValidReturnURL(url: string): boolean {
 function getSuccessRedirect(req) {
   const url = req.query.return || req.body.return || '/'
 
+  console.log('`req.query.return` value: %s', req.query.return)
+  console.log('`req.body.return` value: %s', req.body.return)
+
   if (!isValidReturnURL(url)) {
     return '/'
   }
@@ -91,13 +94,13 @@ function getSuccessRedirect(req) {
   return `${url}${separator}${queryString}`
 }
 
+const setReturnUrl = (req, res, next) => {
+  req.session.returnTo = getSuccessRedirect(req)
+  next()
+}
+
 // Registers route handlers for the external login providers
 loginProviders.forEach(({ provider, options }) => {
-  const setReturnTo = (req, res, next) => {
-    req.session.returnTo = getSuccessRedirect(req)
-    next()
-  }
-
   const handleLogin = passport.authenticate(provider, {
     failureFlash: true,
     ...options,
@@ -114,7 +117,7 @@ loginProviders.forEach(({ provider, options }) => {
     return authenticate(req, res, next)
   }
 
-  router.get(`/login/${provider}`, setReturnTo, handleLogin)
+  router.get(`/login/${provider}`, setReturnUrl, handleLogin)
   router.get(`/login/${provider}/return`, handleReturn)
 })
 
