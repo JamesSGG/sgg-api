@@ -12,7 +12,7 @@ const router = new Router()
 const loginProviders = [
   {
     provider: 'facebook',
-    options: { scope: ['email', 'user_location'] },
+    options: { scope: ['email', 'user_friends'] },
   },
   // {
   //   provider: 'google',
@@ -69,9 +69,6 @@ function isValidReturnURL(url: string): boolean {
 // session ID into cookie (res.cookie.sid = req.query.sessionID).
 function getSuccessRedirect(req) {
   const url = req.query.return || req.body.return || '/'
-
-  console.log('`req.query.return` value: %s', req.query.return)
-  console.log('`req.body.return` value: %s', req.body.return)
 
   if (!isValidReturnURL(url)) {
     return '/'
