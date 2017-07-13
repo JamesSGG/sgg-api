@@ -1,8 +1,22 @@
 [ignore]
-.*/build/.*
-.*/config/.*
-.*/coverage/.*
-.*/tools/.*
+<PROJECT_ROOT>/build/.*
+<PROJECT_ROOT>/config/.*
+<PROJECT_ROOT>/coverage/.*
+<PROJECT_ROOT>/tools/.*
+
+[include]
+src/
+
+[libs]
+flow-typed/
 
 [options]
+emoji=true
+
+module.system.node.resolve_dirname=src
+module.system.node.resolve_dirname=node_modules
+
 esproposal.export_star_as=enable
+esproposal.decorators=ignore
+
+experimental.const_params=true

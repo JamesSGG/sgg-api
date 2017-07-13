@@ -22,6 +22,8 @@ import schema from './schema'
 import DataLoaders from './DataLoaders'
 import accountRoutes from './routes/account'
 
+const RedisStore = connectRedis(session)
+
 const {
   NODE_ENV,
   CORS_ORIGIN,
@@ -62,7 +64,7 @@ app.use(cookieParser())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 app.use(session({
-  store: new (connectRedis(session))({ client: redis }),
+  store: new RedisStore({ client: redis }),
   name: 'sid',
   resave: true,
   saveUninitialized: true,
