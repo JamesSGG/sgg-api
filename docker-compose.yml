@@ -13,7 +13,7 @@ services:
     depends_on:
       - api
     ports:
-      - "8080:80"
+      - "8880:80"
       - "8443:443"
     volumes:
       - ./config/nginx-snippets:/etc/nginx/snippets:ro
@@ -29,7 +29,7 @@ services:
     # SESSION_SECRET, FACEBOOK_ID, and FACEBOOK_SECRET are defined in `.env`.
     # We define them here without a value to pass them down to the container.
     environment:
-      - CORS_ORIGIN=http://localhost:3100
+      - CORS_ORIGIN=http://localhost:3200
       - DATABASE_URL=postgres://postgres@db:5432/dev
       - DATABASE_DEBUG=false
       - REDIS_URL=redis://redis:6379/0
@@ -37,7 +37,7 @@ services:
       - FACEBOOK_ID
       - FACEBOOK_SECRET
     expose:
-      - "8080"
+      - "8880"
     ports:
       - "9229:9229" # V8 inspector (when NODE_DEBUG=true)
     volumes:

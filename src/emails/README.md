@@ -15,7 +15,7 @@ For testing purposes, there is `/emails/:template` endpoint (see [`src/app.js`][
 use for testing these templates in a browser. For example, in order to see how the `welcome`
 template renders in a browser simply navigate to:
 
-https://localhost:8080/emails/welcome
+https://localhost:8880/emails/welcome
 
 All the templates in this folder are pre-compiled at build time (see [`tools/build.js`][build])
 and consumed by the `email` component (see [`src/email.js`][email]).

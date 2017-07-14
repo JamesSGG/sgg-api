@@ -7,13 +7,16 @@ import db from './db'
 import redis from './redis'
 
 const {
-  PORT = 8080,
-  HOSTNAME = '0.0.0.0',
+  PORT,
+  HOSTNAME,
 } = process.env
 
+const hostName = HOSTNAME || '0.0.0.0'
+const port = PORT || 8880
+
 // Launch Node.js server
-const server = app.listen(PORT, HOSTNAME, () => {
-  console.log(`API server is listening on http://${HOSTNAME}:${PORT}`)
+const server = app.listen(port, hostName, () => {
+  console.log(`API server is listening on http://${hostName}:${port}`)
 })
 
 // Shutdown Node.js app gracefully

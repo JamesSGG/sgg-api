@@ -25,7 +25,7 @@ const loginProviders = [
 ]
 
 // '/about' => ''
-// http://localhost:3000/some/page => http://localhost:3000
+// http://localhost:3200/some/page => http://localhost:3200
 function getOrigin(url: string): string {
   if (!url || url.startsWith('/')) {
     return ''
@@ -40,7 +40,7 @@ function getOrigin(url: string): string {
 }
 
 // '/about' => `true` (all relative URL paths are allowed)
-// 'http://localhost:3000/about' => `true` (but only if its origin is whitelisted)
+// 'http://localhost:3200/about' => `true` (but only if its origin is whitelisted)
 function isValidReturnURL(url: string): boolean {
   if (url.startsWith('/')) {
     return true
@@ -61,11 +61,11 @@ function isValidReturnURL(url: string): boolean {
 
 // Generates a URL for redirecting a user to upon successfull authentication.
 // It is intended to support cross-domain authentication in development mode.
-// For example, a user goes to http://localhost:3000/login (frontend) to sign in,
-// then he's being redirected to http://localhost:8080/login/facebook (backend),
+// For example, a user goes to http://localhost:3200/login (frontend) to sign in,
+// then he's being redirected to http://localhost:8880/login/facebook (backend),
 // Passport.js redirects the user to Facebook, which redirects the user back to
-// http://localhost:8080/login/facebook/return and finally, user is being redirected
-// to http://localhost:3000/?sessionID=xxx where front-end middleware can save that
+// http://localhost:8880/login/facebook/return and finally, user is being redirected
+// to http://localhost:3200/?sessionID=xxx where front-end middleware can save that
 // session ID into cookie (res.cookie.sid = req.query.sessionID).
 function getSuccessRedirect(req) {
   const url = req.query.return || req.body.return || '/'
