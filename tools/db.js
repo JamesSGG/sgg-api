@@ -2,6 +2,7 @@
 
 const fs = require('fs')
 const knex = require('knex')
+
 const task = require('./task')
 
 // The list of available commands, e.g. node tools/db.js rollback

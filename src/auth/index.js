@@ -1,5 +1,4 @@
 // @flow
-/* eslint-disable no-param-reassign */
 
 import passport from 'passport'
 import { pick } from 'lodash/fp'

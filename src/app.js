@@ -36,7 +36,7 @@ i18next
   .use(LanguageDetector)
   .use(i18nextBackend)
   .init({
-    preload: ['en', 'de'],
+    preload: ['en'],
     ns: ['common', 'email'],
     fallbackNS: 'common',
     detection: {
@@ -60,7 +60,7 @@ app.use(cors({
   },
 }))
 
-app.use(cookieParser())
+app.use(cookieParser(SESSION_SECRET))
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 app.use(session({
@@ -90,12 +90,18 @@ app.use('/graphql', expressGraphQL((req) => ({
   },
   graphiql: isDev,
   pretty: isDev,
-  formatError: (error) => ({
-    message: error.message,
-    state: error.originalError && error.originalError.state,
-    locations: error.locations,
-    path: error.path,
-  }),
+  formatError(error) {
+    const { message, originalError, locations, path: errorPath } = error
+    const { state } = (originalError || {})
+
+
+    return {
+      message,
+      state,
+      locations,
+      path: errorPath,
+    }
+  },
 })))
 
 // The following routes are intended to be used in development mode only

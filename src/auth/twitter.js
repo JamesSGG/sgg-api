@@ -1,5 +1,3 @@
-/* eslint-disable no-param-reassign */
-
 /**
  * Twitter auth strategy for Passport.js
  *

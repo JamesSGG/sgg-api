@@ -38,7 +38,14 @@ function mapToMany(keys, keyFn, type, rows) {
   }
 
   const group = new Map(keys.map((key) => [key, []]))
-  rows.forEach((row) => group.get(keyFn(row)).push(assignType(row, type)))
+
+  rows.forEach((row) => {
+    const value = group.get(keyFn(row))
+
+    if (value) {
+      value.push(assignType(row, type))
+    }
+  })
 
   return Array.from(group.values())
 }

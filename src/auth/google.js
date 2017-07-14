@@ -1,5 +1,3 @@
-/* eslint-disable no-param-reassign */
-
 /**
  * Google auth strategy for Passport.js
  *

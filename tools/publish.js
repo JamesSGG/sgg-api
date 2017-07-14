@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const cp = require('child_process')
+
 const pkg = require('../package.json')
 
 const host = process.argv[2]

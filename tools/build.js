@@ -5,12 +5,9 @@ const path = require('path')
 const rimraf = require('rimraf')
 const babel = require('babel-core')
 const chokidar = require('chokidar')
-const handlebars = require('handlebars')
-const handlebarsLayouts = require('handlebars-layouts')
-const juice = require('juice')
+
 const task = require('./task')
 
-handlebarsLayouts.register(handlebars)
 
 const delay100ms = ((timeout) => (callback) => {
   if (timeout) {
@@ -20,27 +17,6 @@ const delay100ms = ((timeout) => (callback) => {
   timeout = setTimeout(callback, 100) // eslint-disable-line no-param-reassign
 })()
 
-// Pre-compile email templates to avoid unnecessary parsing at run time. See `src/emails`.
-const compileEmail = (filename) => {
-  fs.readdirSync('src/emails').forEach((file) => {
-    if (file.endsWith('.hbs')) {
-      const partial = fs
-        .readFileSync(`src/emails/${file}`, 'utf8')
-        .replace(/{{/g, '\\{{')
-        .replace(/\\{{(#block|\/block)/g, '{{$1')
-
-      handlebars.registerPartial(file.substr(0, file.length - 4), partial)
-    }
-  })
-
-  const template = fs
-    .readFileSync(filename, 'utf8')
-    .replace(/{{/g, '\\{{')
-    .replace(/\\{{(#extend|\/extend|#content|\/content)/g, '{{$1')
-
-  return handlebars.precompile(juice(handlebars.compile(template)({})))
-}
-
 module.exports = task('build', function buildTask({ watch = false, onComplete } = {}) {
   return new Promise((resolve) => {
     let ready = false
@@ -48,7 +24,7 @@ module.exports = task('build', function buildTask({ watch = false, onComplete } 
     // Clean up the output directory
     rimraf.sync('build/*', { nosort: true, dot: true })
 
-    let watcher = chokidar.watch(['locales', 'src', 'package.json', 'yarn.lock'])
+    let watcher = chokidar.watch(['src', 'package.json', 'yarn.lock'])
     watcher.on('all', (event, src) => {
       // Reload the app if package.json or yarn.lock files have changed (in watch mode)
       if (src === 'package.json' || src === 'yarn.lock') {
@@ -64,11 +40,13 @@ module.exports = task('build', function buildTask({ watch = false, onComplete } 
       }
 
       // Get destination file name, e.g. src/app.js (src) -> build/app.js (dest)
-      const dest = (
+      const filePath = (
         src.startsWith('src')
-        ? `build/${path.relative('src', src)}`
-        : `build/${src}`
+        ? path.relative('src', src)
+        : src
       )
+
+      const dest = `build/${filePath}`
 
       try {
         switch (event) {
@@ -115,14 +93,6 @@ module.exports = task('build', function buildTask({ watch = false, onComplete } 
 
               if (map) {
                 fs.writeFileSync(`${dest}.map`, JSON.stringify(map), 'utf8')
-              }
-            }
-            else if (/^src\/emails\/.+/.test(src)) {
-              if (/^src\/emails\/.+\/.+\.hbs$/.test(src)) {
-                const template = compileEmail(src)
-                const destJs = dest.replace(/\.hbs$/, '.js')
-                fs.writeFileSync(destJs, `module.exports = ${template};`, 'utf8')
-                console.log(src, '->', destJs)
               }
             }
             else if (src.startsWith('src')) {

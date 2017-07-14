@@ -1,6 +1,7 @@
 // @flow
 
 import { GraphQLError } from 'graphql'
+import { has } from 'lodash/fp'
 
 type StateError = {
   key: string,
@@ -14,7 +15,7 @@ export default class ValidationError extends GraphQLError {
     super('The request is invalid.')
 
     const errorReducer = (result, error) => {
-      if (Object.prototype.hasOwnProperty.call(result, error.key)) {
+      if (has(result, error.key)) {
         result[error.key].push(error.message)
       }
       else {
@@ -23,6 +24,7 @@ export default class ValidationError extends GraphQLError {
           enumerable: true,
         })
       }
+
       return result
     }
 

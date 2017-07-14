@@ -1,5 +1,3 @@
-/* eslint-disable no-param-reassign */
-
 /**
  * Facebook auth strategy for Passport.js
  *
