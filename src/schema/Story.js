@@ -38,7 +38,7 @@ export const stories = {
     },
   }).connectionType,
   args: forwardConnectionArgs,
-  async resolve(root, args) {
+  async resolve(root: *, args: *) {
     const limit = typeof args.first === 'undefined' ? '10' : args.first
     const offset = args.after ? cursorToOffset(args.after) + 1 : 0
 
@@ -81,19 +81,28 @@ const outputFields = {
   },
 }
 
-function validate(input, { t, user }) {
+function validate(input, { user }) {
   const errors = []
   const data = {}
 
   if (!user) {
-    throw new ValidationError([{ key: '', message: t('Only authenticated users can create stories.') }])
+    throw new ValidationError([{
+      key: '',
+      message: 'Only authenticated users can create stories.',
+    }])
   }
 
   if (typeof input.title === 'undefined' || input.title.trim() === '') {
-    errors.push({ key: 'title', message: t('The title field cannot be empty.') })
+    errors.push({
+      key: 'title',
+      message: 'The title field cannot be empty.',
+    })
   }
   else if (!validator.isLength(input.title, { min: 3, max: 80 })) {
-    errors.push({ key: 'title', message: t('The title field must be between 3 and 80 characters long.') })
+    errors.push({
+      key: 'title',
+      message: 'The title field must be between 3 and 80 characters long.',
+    })
   }
   else {
     data.title = input.title
@@ -101,10 +110,16 @@ function validate(input, { t, user }) {
 
   if (typeof input.url !== 'undefined' && input.url.trim() !== '') {
     if (!validator.isLength(input.url, { max: 200 })) {
-      errors.push({ key: 'url', message: t('The URL field cannot be longer than 200 characters long.') })
+      errors.push({
+        key: 'url',
+        message: 'The URL field cannot be longer than 200 characters long.',
+      })
     }
     else if (!validator.isURL(input.url)) {
-      errors.push({ key: 'url', message: t('The URL is invalid.') })
+      errors.push({
+        key: 'url',
+        message: 'The URL is invalid.',
+      })
     }
     else {
       data.url = input.url
@@ -113,7 +128,10 @@ function validate(input, { t, user }) {
 
   if (typeof input.text !== 'undefined' && input.text.trim() !== '') {
     if (!validator.isLength(input.text, { min: 20, max: 2000 })) {
-      errors.push({ key: 'text', message: t('The text field must be between 20 and 2000 characters long.') })
+      errors.push({
+        key: 'text',
+        message: 'The text field must be between 20 and 2000 characters long.',
+      })
     }
     else {
       data.text = input.text
@@ -121,10 +139,16 @@ function validate(input, { t, user }) {
   }
 
   if (data.url && data.text) {
-    errors.push({ key: '', message: t('Please fill either the URL or the text field but not both.') })
+    errors.push({
+      key: '',
+      message: 'Please fill either the URL or the text field but not both.',
+    })
   }
   else if (!input.url && !input.text) {
-    errors.push({ key: '', message: t('Please fill either the URL or the text field.') })
+    errors.push({
+      key: '',
+      message: 'Please fill either the URL or the text field.',
+    })
   }
 
   data.author_id = user.id
@@ -166,10 +190,16 @@ export const updateStory = mutationWithClientMutationId({
     const story = await db.table('stories').where('id', '=', id).first('*')
 
     if (!story) {
-      errors.push({ key: '', message: 'Failed to save the story. Please make sure that it exists.' })
+      errors.push({
+        key: '',
+        message: 'Failed to save the story. Please make sure that it exists.',
+      })
     }
     else if (story.author_id !== user.id) {
-      errors.push({ key: '', message: 'You can only edit your own stories.' })
+      errors.push({
+        key: '',
+        message: 'You can only edit your own stories.',
+      })
     }
 
     if (errors.length) {

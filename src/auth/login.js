@@ -1,11 +1,19 @@
 
 import { first } from 'lodash/fp'
 
-import db from '../db'
+import db, { parseRecord } from '../db'
 
 // Creates or updates the external login credentials
 // and returns the currently authenticated user.
 export default async function login(req, provider, profile, tokens) {
+  const {
+    id,
+    username,
+    displayName,
+    emails,
+    photos,
+  } = profile
+
   let user
 
   if (req.user) {
@@ -19,33 +27,46 @@ export default async function login(req, provider, profile, tokens) {
     user = await db
       .table('logins')
       .innerJoin('users', 'users.id', 'logins.user_id')
-      .where({ 'logins.provider': provider, 'logins.id': profile.id })
+      .where({ 'logins.provider': provider, 'logins.id': id })
       .first('users.*')
-    if (!user && profile.emails && profile.emails.length && profile.emails[0].verified === true) {
+
+    if (!user && emails && emails.length && first(emails).verified === true) {
+      const emailData = [{
+        email: first(emails).value,
+        verified: true,
+      }]
+
       user = await db
         .table('users')
-        .where('emails', '@>', JSON.stringify([{ email: profile.emails[0].value, verified: true }]))
+        .where('emails', '@>', JSON.stringify(emailData))
         .first()
     }
   }
 
   if (!user) {
+    const emailData = (emails || []).map((x) => ({
+      email: x.value,
+      verified: x.verified || false,
+    }))
+
     const users = await db
       .table('users')
       .insert({
-        display_name: profile.displayName,
-        emails: JSON.stringify((profile.emails || []).map((x) => ({
-          email: x.value,
-          verified: x.verified || false,
-        }))),
-        image_url: profile.photos && profile.photos.length ? profile.photos[0].value : null,
+        display_name: displayName,
+        emails: JSON.stringify(emailData),
+        image_url: photos && photos.length ? first(photos).value : null,
       })
       .returning('*')
 
     user = first(users)
   }
 
-  const loginKeys = { user_id: user.id, provider, id: profile.id }
+  const loginKeys = {
+    id,
+    provider,
+    user_id: user.id,
+  }
+
   const { count } = await db
     .table('logins')
     .where(loginKeys)
@@ -57,7 +78,7 @@ export default async function login(req, provider, profile, tokens) {
       .table('logins')
       .insert({
         ...loginKeys,
-        username: profile.username,
+        username,
         tokens: JSON.stringify(tokens),
         profile: JSON.stringify(profile._json),
       })
@@ -67,17 +88,17 @@ export default async function login(req, provider, profile, tokens) {
       .table('logins')
       .where(loginKeys)
       .update({
-        username: profile.username,
+        username,
         tokens: JSON.stringify(tokens),
         profile: JSON.stringify(profile._json),
         updated_at: db.raw('CURRENT_TIMESTAMP'),
       })
   }
 
-  return {
-    id: user.id,
-    displayName: user.display_name,
-    imageUrl: user.image_url,
-    emails: user.emails,
-  }
+  return parseRecord(user, [
+    'id',
+    'display_name',
+    'image_url',
+    'emails',
+  ])
 }

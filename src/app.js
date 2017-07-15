@@ -1,6 +1,5 @@
 // @flow
 
-import path from 'path'
 import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
@@ -8,11 +7,8 @@ import bodyParser from 'body-parser'
 import session from 'express-session'
 import connectRedis from 'connect-redis'
 import flash from 'express-flash'
-import i18next from 'i18next'
-import i18nextMiddleware, { LanguageDetector } from 'i18next-express-middleware'
-import i18nextBackend from 'i18next-node-fs-backend'
 import PrettyError from 'pretty-error'
-import expressGraphQL from 'express-graphql'
+import { graphqlExpress } from 'graphql-server-express'
 import { printSchema } from 'graphql'
 
 import email from './email'
@@ -31,22 +27,6 @@ const {
 } = process.env
 
 const isDev = NODE_ENV !== 'production'
-
-i18next
-  .use(LanguageDetector)
-  .use(i18nextBackend)
-  .init({
-    preload: ['en'],
-    ns: ['common', 'email'],
-    fallbackNS: 'common',
-    detection: {
-      lookupCookie: 'lng',
-    },
-    backend: {
-      loadPath: path.resolve(__dirname, '../locales/{{lng}}/{{ns}}.json'),
-      addPath: path.resolve(__dirname, '../locales/{{lng}}/{{ns}}.missing.json'),
-    },
-  })
 
 const app = express()
 
@@ -70,7 +50,6 @@ app.use(session({
   saveUninitialized: true,
   secret: SESSION_SECRET,
 }))
-app.use(i18nextMiddleware.handle(i18next))
 app.use(passport.initialize())
 app.use(passport.session())
 app.use(flash())
@@ -81,6 +60,11 @@ app.get('/graphql/schema', (req, res) => {
   res.type('text/plain').send(printSchema(schema))
 })
 
+app.use('/graphql', bodyParser.json(), graphqlExpress({
+  schema,
+}))
+
+/*
 app.use('/graphql', expressGraphQL((req) => ({
   schema,
   context: {
@@ -91,7 +75,7 @@ app.use('/graphql', expressGraphQL((req) => ({
   graphiql: isDev,
   pretty: isDev,
   formatError(error) {
-    const { message, originalError, locations, path: errorPath } = error
+    const { message, originalError, locations, path } = error
     const { state } = (originalError || {})
 
 
@@ -99,10 +83,11 @@ app.use('/graphql', expressGraphQL((req) => ({
       message,
       state,
       locations,
-      path: errorPath,
+      path,
     }
   },
 })))
+*/
 
 // The following routes are intended to be used in development mode only
 if (isDev) {

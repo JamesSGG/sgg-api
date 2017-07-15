@@ -23,19 +23,28 @@ const outputFields = {
   },
 }
 
-function validate(input, { t, user }) {
+function validate(input, { user }) {
   const errors = []
   const data = {}
 
   if (!user) {
-    throw new ValidationError([{ key: '', message: t('Only authenticated users can add comments.') }])
+    throw new ValidationError([{
+      key: '',
+      message: 'Only authenticated users can add comments.',
+    }])
   }
 
   if (typeof input.text === 'undefined' || input.text.trim() !== '') {
-    errors.push({ key: 'text', message: t('The comment field cannot be empty.') })
+    errors.push({
+      key: 'text',
+      message: 'The comment field cannot be empty.',
+    })
   }
   else if (!validator.isLength(input.text, { min: 20, max: 2000 })) {
-    errors.push({ key: 'text', message: t('The comment must be between 20 and 2000 characters long.') })
+    errors.push({
+      key: 'text',
+      message: 'The comment must be between 20 and 2000 characters long.',
+    })
   }
   else {
     data.text = input.text
