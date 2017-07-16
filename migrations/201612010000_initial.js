@@ -45,57 +45,13 @@ module.exports.up = async (db) => {
     table.timestamps(false, true)
     table.primary(['provider', 'id'])
   })
-
-  await db.schema.createTable('stories', (table) => {
-    table
-      .uuid('id')
-      .notNullable()
-      .defaultTo(db.raw('uuid_generate_v1mc()'))
-      .primary()
-
-    table
-      .uuid('author_id')
-      .notNullable()
-      .references('id')
-      .inTable('users')
-      .onDelete('CASCADE')
-      .onUpdate('CASCADE')
-
-    table.string('title', 80).notNullable()
-    table.string('url', 200)
-    table.text('text')
-    table.timestamps(false, true)
-  })
-
-  await db.schema.createTable('story_points', (table) => {
-    table.uuid('story_id').references('id').inTable('stories').onDelete('CASCADE').onUpdate('CASCADE')
-    table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE').onUpdate('CASCADE')
-    table.primary(['story_id', 'user_id'])
-  })
-
-  await db.schema.createTable('comments', (table) => {
-    table.uuid('id').notNullable().defaultTo(db.raw('uuid_generate_v1mc()')).primary()
-    table.uuid('story_id').notNullable().references('id').inTable('stories').onDelete('CASCADE').onUpdate('CASCADE')
-    table.uuid('parent_id').references('id').inTable('comments').onDelete('CASCADE').onUpdate('CASCADE')
-    table.uuid('author_id').notNullable().references('id').inTable('users').onDelete('CASCADE').onUpdate('CASCADE')
-    table.text('text')
-    table.timestamps(false, true)
-  })
-
-  await db.schema.createTable('comment_points', (table) => {
-    table.uuid('comment_id').references('id').inTable('comments').onDelete('CASCADE').onUpdate('CASCADE')
-    table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE').onUpdate('CASCADE')
-    table.primary(['comment_id', 'user_id'])
-  })
 }
 
 module.exports.down = async (db) => {
-  await db.schema.dropTableIfExists('comment_points')
-  await db.schema.dropTableIfExists('comments')
-  await db.schema.dropTableIfExists('story_points')
-  await db.schema.dropTableIfExists('stories')
   await db.schema.dropTableIfExists('logins')
   await db.schema.dropTableIfExists('users')
 }
 
-module.exports.configuration = { transaction: true }
+module.exports.configuration = {
+  transaction: true,
+}

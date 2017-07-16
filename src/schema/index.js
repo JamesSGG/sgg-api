@@ -1,32 +1,23 @@
-// @flow
 
-import {
-  GraphQLSchema,
-  GraphQLObjectType,
-} from 'graphql'
+import { makeExecutableSchema } from 'graphql-tools'
 
-import { me } from './User'
-import { node, nodes } from './Node'
-import { stories, createStory, updateStory } from './Story'
-import { createComment, updateComment } from './Comment'
+import queryDef from './query/def.graphql'
+import nodeDef from './node/def.graphql'
+import userDef from './user/def.graphql'
+import emailDef from './email/def.graphql'
 
-export default new GraphQLSchema({
-  query: new GraphQLObjectType({
-    name: 'Query',
-    fields: {
-      me,
-      node,
-      nodes,
-      stories,
-    },
-  }),
-  mutation: new GraphQLObjectType({
-    name: 'Mutation',
-    fields: {
-      createStory,
-      updateStory,
-      createComment,
-      updateComment,
-    },
-  }),
+import queryResolvers from './query/resolvers'
+import userResolvers from './user/resolvers'
+
+export default makeExecutableSchema({
+  typeDefs: [
+    queryDef,
+    nodeDef,
+    userDef,
+    emailDef,
+  ],
+  resolvers: {
+    Query: queryResolvers,
+    User: userResolvers,
+  },
 })

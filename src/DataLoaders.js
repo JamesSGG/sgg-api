@@ -11,55 +11,83 @@
  */
 
 import DataLoader from 'dataloader'
+import { curry, property } from 'lodash/fp'
 
 import db from './db'
 
-// Appends type information to an object, e.g. { id: 1 } => { __type: 'User', id: 1 };
-function assignType(obj: any, type: string) {
+// Appends type information to an object.
+// e.g. { id: 1 } => { __type: 'User', id: 1 }
+export function assignType(
+  obj: Object,
+  type: string,
+): Object {
   return {
     __type: type,
+    ...obj,
   }
 }
 
-function mapTo(keys, keyFn, type, rows) {
-  if (!rows) {
-    return mapTo.bind(null, keys, keyFn, type)
-  }
-
-  const group = new Map(keys.map((key) => [key, null]))
-  rows.forEach((row) => group.set(keyFn(row), assignType(row, type)))
-
-  return Array.from(group.values())
-}
-
-function mapToMany(keys, keyFn, type, rows) {
-  if (!rows) {
-    return mapToMany.bind(null, keys, keyFn, type)
-  }
-
-  const group = new Map(keys.map((key) => [key, []]))
+export function _mapTo(
+  keys: Array<*>,
+  getRowKey: (row: *) => *,
+  type: string,
+  rows: Array<*>,
+): Array<*> {
+  const pairs = keys.map((key) => [key, null])
+  const group = new Map(pairs)
 
   rows.forEach((row) => {
-    const value = group.get(keyFn(row))
+    const key = getRowKey(row)
+    const value = assignType(row, type)
 
-    if (value) {
-      value.push(assignType(row, type))
-    }
+    group.set(key, value)
   })
 
   return Array.from(group.values())
 }
 
-function mapToValues(keys, keyFn, valueFn, rows) {
-  if (!rows) {
-    return mapToValues.bind(null, keys, keyFn, valueFn)
-  }
+export function _mapToMany(
+  keys: Array<*>,
+  getRowKey: (row: *) => *,
+  type: string,
+  rows: Array<*>,
+): Array<*> {
+  const pairs = keys.map((key) => [key, []])
+  const group = new Map(pairs)
 
-  const group = new Map(keys.map((key) => [key, null]))
-  rows.forEach((row) => group.set(keyFn(row), valueFn(row)))
+  rows.forEach((row) => {
+    const key = getRowKey(row)
+    const newValue = assignType(row, type)
+    const currentValue = group.get(key) || []
+
+    group.set(key, [...currentValue, newValue])
+  })
 
   return Array.from(group.values())
 }
+
+function _mapToValues(
+  keys: Array<*>,
+  getRowKey: (row: *) => *,
+  getRowValue: (row: *) => *,
+  rows: Array<*>,
+): Array<*> {
+  const pairs = keys.map((key) => [key, null])
+  const group = new Map(pairs)
+
+  rows.forEach((row) => {
+    const key = getRowKey(row)
+    const value = getRowValue(row)
+
+    group.set(key, value)
+  })
+
+  return Array.from(group.values())
+}
+
+export const mapTo = curry(_mapTo)
+export const mapToMany = curry(_mapToMany)
+export const mapToValues = curry(_mapToValues)
 
 export default {
   create: () => ({
@@ -68,69 +96,7 @@ export default {
         .table('users')
         .whereIn('id', keys)
         .select('*')
-        .then(mapTo(keys, (x) => x.id, 'User'))
-    }),
-
-    stories: new DataLoader(function resolve(keys) {
-      return db
-        .table('stories')
-        .whereIn('id', keys)
-        .select('*')
-        .then(mapTo(keys, (x) => x.id, 'Story'))
-    }),
-
-    storyCommentsCount: new DataLoader(function resolve(keys) {
-      return db
-        .table('stories')
-        .leftJoin('comments', 'stories.id', 'comments.story_id')
-        .whereIn('stories.id', keys)
-        .groupBy('stories.id')
-        .select('stories.id', db.raw('count(comments.story_id)'))
-        .then(mapToValues(keys, (x) => x.id, (x) => x.count))
-    }),
-
-    storyPointsCount: new DataLoader(function resolve(keys) {
-      return db
-        .table('stories')
-        .leftJoin('story_points', 'stories.id', 'story_points.story_id')
-        .whereIn('stories.id', keys)
-        .groupBy('stories.id')
-        .select('stories.id', db.raw('count(story_points.story_id)'))
-        .then(mapToValues(keys, (x) => x.id, (x) => x.count))
-    }),
-
-    comments: new DataLoader(function resolve(keys) {
-      return db
-        .table('comments')
-        .whereIn('id', keys)
-        .select('*')
-        .then(mapTo(keys, (x) => x.id, 'Comment'))
-    }),
-
-    commentsByStory: new DataLoader(function resolve(keys) {
-      return db
-        .table('comments')
-        .whereIn('story_id', keys)
-        .select('*')
-        .then(mapToMany(keys, (x) => x.story_id, 'Comment'))
-    }),
-
-    commentsByParent: new DataLoader(function resolve(keys) {
-      return db
-        .table('comments')
-        .whereIn('parent_id', keys)
-        .select('*')
-        .then(mapToMany(keys, (x) => x.story_id, 'Comment'))
-    }),
-
-    commentPointsCount: new DataLoader(function resolve(keys) {
-      return db
-        .table('comments')
-        .leftJoin('comment_points', 'comments.id', 'comment_points.comment_id')
-        .whereIn('comments.id', keys)
-        .groupBy('comments.id')
-        .select('comments.id', db.raw('count(comment_points.comment_id)'))
-        .then(mapToValues(keys, (x) => x.id, (x) => x.count))
+        .then(mapTo(keys, property('id'), 'User'))
     }),
   }),
 }

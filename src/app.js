@@ -8,10 +8,12 @@ import session from 'express-session'
 import connectRedis from 'connect-redis'
 import flash from 'express-flash'
 import PrettyError from 'pretty-error'
-import { graphqlExpress } from 'graphql-server-express'
 import { printSchema } from 'graphql'
+import {
+  graphqlExpress,
+  graphiqlExpress,
+} from 'graphql-server-express'
 
-import email from './email'
 import redis from './redis'
 import passport from './auth'
 import schema from './schema'
@@ -56,24 +58,13 @@ app.use(flash())
 
 app.use(accountRoutes)
 
-app.get('/graphql/schema', (req, res) => {
-  res.type('text/plain').send(printSchema(schema))
-})
-
-app.use('/graphql', bodyParser.json(), graphqlExpress({
-  schema,
-}))
-
-/*
-app.use('/graphql', expressGraphQL((req) => ({
+const graphqlMiddleware = graphqlExpress((request) => ({
   schema,
   context: {
-    t: req.t,
-    user: req.user,
+    user: request.user,
     ...DataLoaders.create(),
   },
-  graphiql: isDev,
-  pretty: isDev,
+  debug: isDev,
   formatError(error) {
     const { message, originalError, locations, path } = error
     const { state } = (originalError || {})
@@ -86,25 +77,29 @@ app.use('/graphql', expressGraphQL((req) => ({
       path,
     }
   },
-})))
-*/
+}))
+
+const graphqlUiMiddleware = graphiqlExpress({
+  endpointURL: '/graphql',
+})
+
+app.use('/graphql', bodyParser.json(), graphqlMiddleware)
+app.use('/graphiql', graphqlUiMiddleware)
+
+app.get('/graphql/schema', (req, res) => {
+  res.type('text/plain').send(printSchema(schema))
+})
 
 // The following routes are intended to be used in development mode only
 if (isDev) {
-  // A route for testing email templates
-  app.get('/:email(email|emails)/:template', (req, res) => {
-    const message = email.render(req.params.template, { t: req.t, v: 123 })
-    res.send(message.html)
-  })
-
   // A route for testing authentication/authorization
   app.get('/', (req, res) => {
     if (req.user) {
       const { displayName } = req.user
-      res.send(`<p>${req.t('Welcome, {{user}}!', { user: displayName })} (<a href="javascript:fetch('/login/clear', { method: 'POST', credentials: 'include' }).then(() => window.location = '/')">${req.t('log out')}</a>)</p>`)
+      res.send(`<p>Welcome, ${displayName}! (<a href="javascript:fetch('/login/clear', { method: 'POST', credentials: 'include' }).then(() => window.location = '/')">Log Out</a>)</p>`)
     }
     else {
-      res.send(`<p>${req.t('Welcome, guest!')} (<a href="/login/facebook">${req.t('sign in')}</a>)</p>`)
+      res.send('<p>Welcome, guest! (<a href="/login/facebook">Sign In</a>)</p>')
     }
   })
 }

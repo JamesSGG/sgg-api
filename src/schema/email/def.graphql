@@ -1,0 +1,5 @@
+
+type Email {
+  email: String!,
+  verified: Boolean,
+}

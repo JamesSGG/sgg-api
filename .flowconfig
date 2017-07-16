@@ -16,6 +16,9 @@ emoji=true
 module.system.node.resolve_dirname=src
 module.system.node.resolve_dirname=node_modules
 
+suppress_comment= \\(.\\|\n\\)*\\$FlowFixMe
+suppress_comment= \\(.\\|\n\\)*\\$FlowIgnore
+
 esproposal.export_star_as=enable
 esproposal.decorators=ignore
 

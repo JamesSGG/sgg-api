@@ -1,0 +1,8 @@
+
+type Query {
+  # Fetch a specific user by ID
+  user(id: ID!): User
+
+  # Fetch the current logged-in user
+  me: User
+}

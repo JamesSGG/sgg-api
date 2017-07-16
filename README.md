@@ -5,7 +5,6 @@
 ✓ [PostgreSQL][pg] database schema boilerplate and migration tools (see [`tools`](./tools), [`migrations`](./migrations))  
 ✓ Authentication and authorization via [Passport.js][passport] (see [`src/passport.js`](./src/passport.js), [`src/routes/account.js`](./src/routes/account.js))  
 ✓ Session and cache management with [Redis][redis] and [DataLoader][loader] (see [stop using JWT for sessions](http://cryto.net/~joepie91/blog/2016/06/13/stop-using-jwt-for-sessions/))  
-✓ Email templates for sending transactional email (see [`src/emails`](./src/emails), [`src/email.js`](./src/email.js))  
 
 
 [gql]: http://graphql.org
