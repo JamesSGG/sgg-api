@@ -4,4 +4,5 @@ type User {
   displayName: String
   imageUrl: String
   emails: [Email]
+  friends: [User]
 }

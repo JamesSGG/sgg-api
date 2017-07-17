@@ -1,0 +1,15 @@
+
+enum OnlineStatus {
+  ONLINE
+  OFFLINE
+}
+
+type OnlineStatusEvent {
+  id: ID!
+  status: OnlineStatus
+}
+
+type Subscription {
+  # Is triggered when a user's online / offline status changes
+  userOnlineStatusChanged: OnlineStatusEvent
+}

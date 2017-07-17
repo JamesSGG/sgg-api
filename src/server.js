@@ -11,7 +11,7 @@ const {
   HOSTNAME,
 } = process.env
 
-const hostName = HOSTNAME || '0.0.0.0'
+const hostName = HOSTNAME || 'localhost'
 const port = PORT || 8880
 
 // Launch Node.js server
