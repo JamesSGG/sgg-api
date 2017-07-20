@@ -13,7 +13,6 @@ import { execute, subscribe, printSchema } from 'graphql'
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express'
 import { SubscriptionServer } from 'subscriptions-transport-ws'
 import { RedisPubSub } from 'graphql-redis-subscriptions'
-import { castArray } from 'lodash/fp'
 
 import redis from './redis'
 import passport from './auth'
@@ -31,49 +30,16 @@ const {
 } = process.env
 
 const hostName = HOSTNAME || 'localhost'
+
+const wsHostName = hostName === 'api' ? 'localhost' : hostName
 const wsPort = WS_PORT || 5000
+
+const subscriptionsPath = '/subscriptions'
+
 
 const isDev = NODE_ENV !== 'production'
 
 const RedisStore = connectRedis(session)
-
-type TransformArgs = {
-  path: string | Array<String>,
-}
-
-const pubsub = new RedisPubSub({
-  connection: {
-    url: REDIS_URL,
-  },
-  // Create unique names for each subscription channel using dot-notation
-  triggerTransform(trigger: string, { path }: TransformArgs) {
-    const pathList = castArray(path)
-    const parts = [trigger, ...pathList]
-
-    return parts.join('.')
-  },
-})
-
-const websocketServer = createServer((request, response) => {
-  response.writeHead(404)
-  response.end()
-})
-
-websocketServer.listen(wsPort, () => {
-  console.log(`Websocket Server is now running on http://${hostName}:${wsPort}`)
-})
-
-const subscriptionServer = SubscriptionServer.create(
-  {
-    schema,
-    execute,
-    subscribe,
-  },
-  {
-    server: websocketServer,
-    path: '/graphql',
-  },
-)
 
 const app = express()
 
@@ -126,6 +92,7 @@ const graphqlMiddleware = graphqlExpress((request) => ({
 
 const graphqlUiMiddleware = graphiqlExpress({
   endpointURL: '/graphql',
+  subscriptionsEndpoint: `ws://${wsHostName}:${wsPort}${subscriptionsPath}`,
 })
 
 app.use('/graphql', bodyParser.json(), graphqlMiddleware)
@@ -156,6 +123,35 @@ prettyError.skipPackage('express')
 app.use((err, req, res, next) => {
   process.stderr.write(prettyError.render(err))
   next()
+})
+
+// Subscriptions
+
+export const pubsub = new RedisPubSub({
+  connection: {
+    url: REDIS_URL,
+  },
+})
+
+const wsServer = createServer((request, response) => {
+  response.writeHead(404)
+  response.end()
+})
+
+wsServer.listen(wsPort, () => {
+  console.log(`Websocket Server is now running on http://${wsHostName}:${wsPort}`)
+
+  SubscriptionServer.create(
+    {
+      schema,
+      execute,
+      subscribe,
+    },
+    {
+      server: wsServer,
+      path: subscriptionsPath,
+    },
+  )
 })
 
 export default app

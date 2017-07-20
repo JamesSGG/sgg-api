@@ -33,12 +33,14 @@ services:
       - DATABASE_URL=postgres://postgres@db:5432/dev
       - DATABASE_DEBUG=false
       - REDIS_URL=redis://redis:6379/0
+      - BABEL_DISABLE_CACHE=1
       - SESSION_SECRET
       - FACEBOOK_ID
       - FACEBOOK_SECRET
     expose:
       - "8880"
     ports:
+      - "5000:5000" # WebSockets port
       - "9229:9229" # V8 inspector (when NODE_DEBUG=true)
     volumes:
       - yarn:/root/.cache/yarn

@@ -105,6 +105,7 @@ loginProviders.forEach(({ provider, options }) => {
 
   const handleReturn = (req, res, next) => {
     const { returnTo } = req.session
+
     const authenticate = passport.authenticate(provider, {
       successReturnToOrRedirect: true,
       failureFlash: true,
@@ -114,8 +115,19 @@ loginProviders.forEach(({ provider, options }) => {
     return authenticate(req, res, next)
   }
 
-  router.get(`/login/${provider}`, setReturnUrl, handleLogin)
-  router.get(`/login/${provider}/return`, handleReturn)
+  const handleError = (error, req, res, next) => {
+    console.log(error.message)
+
+    res.send({
+      error: true,
+      message: error.message,
+    })
+
+    next()
+  }
+
+  router.get(`/login/${provider}`, setReturnUrl, handleLogin, handleError)
+  router.get(`/login/${provider}/return`, handleReturn, handleError)
 })
 
 // Remove the `user` object from the session. Example:

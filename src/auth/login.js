@@ -14,8 +14,6 @@ export default async function login(req, provider, profile, tokens) {
     photos,
   } = profile
 
-  console.log(profile)
-
   let user
 
   if (req.user) {
