@@ -21,9 +21,19 @@ const config = {
 
 // The template for database migration files (see templates/*.js)
 const version = new Date().toISOString().substr(0, 16).replace(/\D/g, '')
-const template = `module.exports.up = async (db) => {\n  \n};\n
-module.exports.down = async (db) => {\n  \n};\n
-module.exports.configuration = { transaction: true };\n`
+const template = `
+module.exports.up = async (db) => {
+
+}
+
+module.exports.down = async (db) => {
+
+}
+
+module.exports.configuration = {
+  transaction: true,
+}
+`
 
 module.exports = task('db', async () => {
   let db

@@ -1,0 +1,63 @@
+
+enum UserStatus {
+  ONLINE
+  OFFLINE
+}
+
+input UserStatusInput {
+  userId: ID!
+  status: UserStatus
+}
+
+input UserInput {
+  userId: ID
+}
+
+input UserListInput {
+  userIds: [ID]
+}
+
+input AddFriendInput {
+  userId: ID!
+  friendId: ID!
+}
+
+type UserStatusInfo {
+  userId: ID!
+  status: UserStatus
+}
+
+type AddFriendResult {
+  userId: ID
+  friendId: ID
+}
+
+type Query {
+  # Fetch a specific user by ID
+  user(id: ID!): User
+
+  # Fetch all users
+  users: [User]
+
+  # Fetch the current logged-in user
+  me: User
+
+  # Fetch friends of the user with the specified ID
+  friendsOfUser(id: ID!): [User]
+
+  # Fetch friends of the current logged-in user
+  myFriends(): [User]
+}
+
+type Mutation {
+  # Sets a user's online / offline status
+  setUserOnlineStatus(input: UserStatusInput!): UserStatusInfo
+
+  # Adds a friend to a user
+  addFriendToUser(input: AddFriendInput!): AddFriendResult
+}
+
+type Subscription {
+  # Is triggered when a user's online / offline status changes
+  userOnlineStatusChanged(input: UserListInput): UserStatusInfo
+}

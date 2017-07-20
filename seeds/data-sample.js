@@ -4,11 +4,14 @@ const { range } = require('lodash/fp')
 
 module.exports.seed = async (db) => {
   // Create 10 random website users (as an example)
-  const users = range(10).map(function createUser() {
+  const users = range(0, 10).map(function createUser() {
     return {
       display_name: faker.name.findName(),
       image_url: faker.internet.avatar(),
-      emails: JSON.stringify([{ email: faker.internet.email().toLowerCase(), verified: false }]),
+      emails: JSON.stringify([{
+        email: faker.internet.email().toLowerCase(),
+        verified: false,
+      }]),
     }
   })
 

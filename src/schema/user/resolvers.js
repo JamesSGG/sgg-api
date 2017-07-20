@@ -1,19 +1,23 @@
 
 export default {
-  id(parent) {
-    return parent.id
-  },
-  displayName(parent) {
-    return parent.display_name
-  },
-  imageUrl(parent) {
-    return parent.image_url
-  },
-  emails(parent, args, { user }) {
-    if (user && user.id === parent.id) {
-      return parent.emails
-    }
+  User: {
+    id(obj) {
+      return obj.id
+    },
+    displayName(obj) {
+      return obj.display_name
+    },
+    imageUrl(obj) {
+      return obj.image_url
+    },
+    emails(obj, args, context) {
+      const { user } = context
 
-    return null
+      if (user && user.id === obj.id) {
+        return obj.emails
+      }
+
+      return null
+    },
   },
 }

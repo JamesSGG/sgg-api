@@ -11,7 +11,15 @@
  */
 
 import DataLoader from 'dataloader'
-import { curry, property } from 'lodash/fp'
+import {
+  compose,
+  curry,
+  property,
+  map,
+  uniq,
+  first,
+  toNumber,
+} from 'lodash/fp'
 
 import db from './db'
 
@@ -89,14 +97,93 @@ export const mapTo = curry(_mapTo)
 export const mapToMany = curry(_mapToMany)
 export const mapToValues = curry(_mapToValues)
 
+const getQueryCount = compose(
+  toNumber,
+  property('count'),
+  first,
+)
+
 export default {
   create: () => ({
-    users: new DataLoader(function resolve(keys) {
+    allUsers() {
+      const parseUsers = map((row) => assignType(row, 'User'))
+
       return db
-        .table('users')
-        .whereIn('id', keys)
         .select('*')
-        .then(mapTo(keys, property('id'), 'User'))
+        .from('users')
+        .then(parseUsers)
+    },
+    async addFriendToUser(userId: string, friendId: string) {
+      if (!userId || !friendId) {
+        return null
+      }
+
+      const hasFriendResult = await db
+        .table('user_friends')
+        .count('user_id')
+        .where('user_id', userId)
+        .andWhere('friend_id', friendId)
+
+      const hasFriend = getQueryCount(hasFriendResult) > 0
+
+      if (hasFriend) {
+        console.log(`User ${userId} is already friends with ${friendId}`)
+
+        return { userId, friendId }
+      }
+
+      await db
+        .table('user_friends')
+        .insert({ user_id: userId, friend_id: friendId })
+
+      return { userId, friendId }
+    },
+    updateUser(userId: *, data: *) {
+      db
+        .select('*')
+        .from('users')
+        .where('id', userId)
+        .then((rows) => {
+          const user = rows[0]
+
+          const newEmails = uniq([
+            ...(user.emails || []),
+            ...(data.emails || []),
+          ])
+
+          const newFriends = uniq([
+            ...(user.friends || []),
+            ...(data.friends || []),
+          ])
+
+          const newUserData = {
+            ...user,
+            emails: JSON.stringify(newEmails),
+            friends: JSON.stringify(newFriends),
+          }
+
+          return db('users')
+            .where('id', userId)
+            .update(newUserData)
+        })
+    },
+    friendsOfUser: new DataLoader(function resolve(keys) {
+      const parseUsers = mapToMany(keys, property('user_id'), 'UserFriend')
+
+      return db
+        .select('user_id', 'friend_id')
+        .from('user_friends')
+        .whereIn('user_id', keys)
+        .then(parseUsers)
+    }),
+    usersById: new DataLoader(function resolve(keys: Array<*>) {
+      const parseUsers = mapTo(keys, property('id'), 'User')
+
+      return db
+        .select('*')
+        .from('users')
+        .whereIn('id', keys)
+        .then(parseUsers)
     }),
   }),
 }
