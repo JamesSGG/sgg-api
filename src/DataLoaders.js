@@ -16,7 +16,6 @@ import {
   curry,
   property,
   map,
-  uniq,
   first,
   toNumber,
 } from 'lodash/fp'
@@ -113,6 +112,29 @@ export default {
         .from('users')
         .then(parseUsers)
     },
+    async setUserOnlineStatus(userId: string, status: 'online' | 'offline') {
+      const validStatusValues = [
+        'online',
+        'offline',
+      ]
+
+      if (!userId || !status) {
+        console.log('The `userId` and `status` arguments are both required')
+        return null
+      }
+
+      if (!validStatusValues.includes(status)) {
+        console.log('Expected `status` to be either "online" or "offline", got: %s', status)
+        return null
+      }
+
+      await db
+        .table('users')
+        .where('id', userId)
+        .update('online_status', status)
+
+      return { userId, status }
+    },
     async addFriendToUser(userId: string, friendId: string) {
       if (!userId || !friendId) {
         return null
@@ -132,40 +154,16 @@ export default {
         return { userId, friendId }
       }
 
+      const record = {
+        user_id: userId,
+        friend_id: friendId,
+      }
+
       await db
         .table('user_friends')
-        .insert({ user_id: userId, friend_id: friendId })
+        .insert(record)
 
       return { userId, friendId }
-    },
-    updateUser(userId: *, data: *) {
-      db
-        .select('*')
-        .from('users')
-        .where('id', userId)
-        .then((rows) => {
-          const user = rows[0]
-
-          const newEmails = uniq([
-            ...(user.emails || []),
-            ...(data.emails || []),
-          ])
-
-          const newFriends = uniq([
-            ...(user.friends || []),
-            ...(data.friends || []),
-          ])
-
-          const newUserData = {
-            ...user,
-            emails: JSON.stringify(newEmails),
-            friends: JSON.stringify(newFriends),
-          }
-
-          return db('users')
-            .where('id', userId)
-            .update(newUserData)
-        })
     },
     friendsOfUser: new DataLoader(function resolve(keys) {
       const parseUsers = mapToMany(keys, property('user_id'), 'UserFriend')

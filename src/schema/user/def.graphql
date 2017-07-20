@@ -1,7 +1,21 @@
 
+# User record
 type User {
+  # User ID
   id: ID!
+
+  # Display name
   displayName: String
+
+  # Avatar image URL
   imageUrl: String
+
+  # Emails
   emails: [Email]
+
+  # Online status
+  onlineStatus: UserStatus
+
+  # Friends
+  friends: [User]
 }

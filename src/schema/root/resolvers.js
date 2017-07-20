@@ -1,6 +1,5 @@
 
 import { withFilter } from 'graphql-subscriptions'
-import { property, isEmpty } from 'lodash/fp'
 
 import { pubsub } from '../../app'
 
@@ -10,27 +9,6 @@ const USER_FRIEND_ADDED = 'USER_FRIEND_ADDED'
 // function filtered(asyncIterator, filter) {
 //   return withFilter(() => asyncIterator, filter)
 // }
-
-function getFriendsOfUser(obj, args, context) {
-  const { usersById, friendsOfUser } = context
-  const { id } = args
-
-  if (!id) {
-    return null
-  }
-
-  return friendsOfUser
-    .load(id)
-    .then((rows) => {
-      const friendIds = rows.map(property('friend_id'))
-
-      if (!friendIds || isEmpty(friendIds)) {
-        return null
-      }
-
-      return usersById.loadMany(friendIds)
-    })
-}
 
 export default {
   Query: {
@@ -55,7 +33,7 @@ export default {
       return allUsers()
     },
 
-    me(obj, args, context) {
+    currentUser(obj, args, context) {
       const { user, usersById } = context
 
       if (!user) {
@@ -64,22 +42,13 @@ export default {
 
       return usersById.load(user.id)
     },
-
-    friendsOfUser: getFriendsOfUser,
-
-    myFriends(obj, args, context) {
-      const { user } = context
-
-      if (!user) {
-        return null
-      }
-
-      return getFriendsOfUser(obj, args, context)
-    },
   },
   Mutation: {
-    setUserOnlineStatus(obj, args) {
+    setUserOnlineStatus(obj, args, context) {
       const { input: { userId, status } } = args
+      const { setUserOnlineStatus } = context
+
+      setUserOnlineStatus(userId, status)
 
       pubsub.publish(USER_ONLINE_STATUS_CHANGED, {
         userOnlineStatusChanged: { userId, status },

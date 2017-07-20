@@ -1,7 +1,7 @@
 
 enum UserStatus {
-  ONLINE
-  OFFLINE
+  online
+  offline
 }
 
 input UserStatusInput {
@@ -40,13 +40,7 @@ type Query {
   users: [User]
 
   # Fetch the current logged-in user
-  me: User
-
-  # Fetch friends of the user with the specified ID
-  friendsOfUser(id: ID!): [User]
-
-  # Fetch friends of the current logged-in user
-  myFriends(): [User]
+  currentUser: User
 }
 
 type Mutation {

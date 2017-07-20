@@ -1,5 +1,9 @@
 
+# User email object
 type Email {
+  # Email address
   email: String!,
+
+  # Is email verified? (pulled from Facebook profile data)
   verified: Boolean,
 }
