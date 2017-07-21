@@ -1,6 +1,6 @@
 // @flow
 
-import { createServer } from 'http'
+// import { createServer } from 'http'
 import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
@@ -9,9 +9,9 @@ import session from 'express-session'
 import connectRedis from 'connect-redis'
 import flash from 'express-flash'
 import PrettyError from 'pretty-error'
-import { execute, subscribe, printSchema } from 'graphql'
+import { /* execute, subscribe, */ printSchema } from 'graphql'
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express'
-import { SubscriptionServer } from 'subscriptions-transport-ws'
+// import { SubscriptionServer } from 'subscriptions-transport-ws'
 import { RedisPubSub } from 'graphql-redis-subscriptions'
 
 import redis from './redis'
@@ -22,22 +22,19 @@ import accountRoutes from './routes/account'
 
 const {
   NODE_ENV,
-  HOSTNAME,
-  WS_PORT,
+  // HOSTNAME,
+  // WS_PORT,
   REDIS_URL,
   CORS_ORIGIN,
   SESSION_SECRET,
 } = process.env
 
-const hostName = HOSTNAME || 'localhost'
+// const hostName = HOSTNAME || 'localhost'
 
-const wsHostName = hostName === 'api' ? 'localhost' : hostName
-const wsPort = WS_PORT || 5000
+// const wsHostName = hostName === 'api' ? 'localhost' : hostName
+// const wsPort = WS_PORT || 5000
 
-console.log(hostName)
-console.log(wsHostName)
-
-const subscriptionsPath = '/subscriptions'
+// const subscriptionsPath = '/subscriptions'
 
 
 const isDev = NODE_ENV !== 'production'
@@ -95,7 +92,7 @@ const graphqlMiddleware = graphqlExpress((request) => ({
 
 const graphqlUiMiddleware = graphiqlExpress({
   endpointURL: '/graphql',
-  subscriptionsEndpoint: `ws://${wsHostName}:${wsPort}${subscriptionsPath}`,
+  // subscriptionsEndpoint: `ws://${wsHostName}:${wsPort}${subscriptionsPath}`,
 })
 
 app.use('/graphql', bodyParser.json(), graphqlMiddleware)
@@ -136,25 +133,25 @@ export const pubsub = new RedisPubSub({
   },
 })
 
-const wsServer = createServer((request, response) => {
-  response.writeHead(404)
-  response.end()
-})
-
-wsServer.listen(wsPort, () => {
-  console.log(`Websocket Server is now running on http://${wsHostName}:${wsPort}`)
-
-  SubscriptionServer.create(
-    {
-      schema,
-      execute,
-      subscribe,
-    },
-    {
-      server: wsServer,
-      path: subscriptionsPath,
-    },
-  )
-})
+// const wsServer = createServer((request, response) => {
+//   response.writeHead(404)
+//   response.end()
+// })
+//
+// wsServer.listen(wsPort, () => {
+//   console.log(`Websocket Server is now running on http://${wsHostName}:${wsPort}`)
+//
+//   SubscriptionServer.create(
+//     {
+//       schema,
+//       execute,
+//       subscribe,
+//     },
+//     {
+//       server: wsServer,
+//       path: subscriptionsPath,
+//     },
+//   )
+// })
 
 export default app
