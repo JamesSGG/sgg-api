@@ -23,6 +23,8 @@ const server = app.listen(port, hostName, () => {
 function handleExit(options, error) {
   const { cleanup, exit } = options
 
+  console.log('Shutting down API server')
+
   if (cleanup) {
     const actions = [server.close, db.destroy, redis.quit]
 

@@ -29,29 +29,31 @@ process.on('SIGTERM', () => process.emit('cleanup'))
 
 // Ensure that Node.js modules were installed,
 // at least those required to build the app
-try {
-  build = require('./build')
-}
-catch (err) {
-  if (err.code !== 'MODULE_NOT_FOUND') {
-    throw err
-  }
-
-  // Install Node.js modules with Yarn
-  cp.spawnSync('yarn', ['install', '--no-progress'], { stdio: 'inherit' })
-
-  // Clear Module's internal cache
+function buildApp() {
   try {
-    const Module = require('module')
-    const m = new Module()
-    m._compile(fs.readFileSync('./tools/build.js', 'utf8'), path.resolve('./tools/build.js'))
+    build = require('./build')
   }
-  catch (error) {
-    // Do nothing
-  }
+  catch (err) {
+    if (err.code !== 'MODULE_NOT_FOUND') {
+      throw err
+    }
 
-  // Reload dependencies
-  build = require('./build')
+    // Install Node.js modules with Yarn
+    cp.spawnSync('yarn', ['install', '--no-progress'], { stdio: 'inherit' })
+
+    // Clear Module's internal cache
+    try {
+      const Module = require('module')
+      const m = new Module()
+      m._compile(fs.readFileSync('./tools/build.js', 'utf8'), path.resolve('./tools/build.js'))
+    }
+    catch (error) {
+      // Do nothing
+    }
+
+    // Reload dependencies
+    build = require('./build')
+  }
 }
 
 // Launch `node build/server.js` on a background thread
@@ -153,6 +155,8 @@ module.exports = task('run', function runTask() {
       .then(launchServer)
       .then(handleExit)
   }
+
+  buildApp()
 
   return Promise
     .resolve()
