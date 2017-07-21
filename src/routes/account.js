@@ -1,10 +1,11 @@
 // @flow
 
 import URL from 'url'
+import qs from 'querystring'
 import passport from 'passport'
 import validator from 'validator'
 import { Router } from 'express'
-import { compose, compact } from 'lodash/fp'
+import { compose } from 'lodash/fp'
 
 const router = new Router()
 
@@ -70,6 +71,9 @@ function isValidReturnURL(url: string): boolean {
 function getSuccessRedirect(req) {
   const url = req.query.return || req.body.return || '/'
 
+  console.log(req.cookies)
+  console.log(req.session.cookie)
+
   if (!isValidReturnURL(url)) {
     return '/'
   }
@@ -81,10 +85,10 @@ function getSuccessRedirect(req) {
   const { cookies, session } = req
   const { originalMaxAge } = session.cookie
 
-  const queryString = compact([
-    cookies.sid && `sessionID=${cookies.sid}`,
-    originalMaxAge && `maxAge=${originalMaxAge}`,
-  ]).join('&')
+  const queryString = qs.stringify({
+    sessionID: cookies.sid,
+    maxAge: originalMaxAge,
+  })
 
   const separator = url.includes('?') ? '&' : '?'
 
