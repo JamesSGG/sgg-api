@@ -64,7 +64,7 @@ app.use(session({
   secret: SESSION_SECRET,
   cookie: {
     httpOnly: false,
-    domain: isDev ? null : 'herokuapp.com',
+    domain: '.herokuapp.com',
   },
 }))
 app.use(passport.initialize())
