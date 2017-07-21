@@ -64,6 +64,7 @@ app.use(session({
   secret: SESSION_SECRET,
   cookie: {
     httpOnly: false,
+    domain: isDev ? null : 'https://social-gaming-guild-site.herokuapp.com',
   },
 }))
 app.use(passport.initialize())
