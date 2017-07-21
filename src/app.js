@@ -12,7 +12,7 @@ import PrettyError from 'pretty-error'
 import { /* execute, subscribe, */ printSchema } from 'graphql'
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express'
 // import { SubscriptionServer } from 'subscriptions-transport-ws'
-import { RedisPubSub } from 'graphql-redis-subscriptions'
+// import { RedisPubSub } from 'graphql-redis-subscriptions'
 
 import redis from './redis'
 import passport from './auth'
@@ -24,7 +24,7 @@ const {
   NODE_ENV,
   // HOSTNAME,
   // WS_PORT,
-  REDIS_URL,
+  // REDIS_URL,
   CORS_ORIGIN,
   SESSION_SECRET,
 } = process.env
@@ -127,11 +127,11 @@ app.use((err, req, res, next) => {
 
 // Subscriptions
 
-export const pubsub = new RedisPubSub({
-  connection: {
-    url: REDIS_URL,
-  },
-})
+// export const pubsub = new RedisPubSub({
+//   connection: {
+//     url: REDIS_URL,
+//   },
+// })
 
 // const wsServer = createServer((request, response) => {
 //   response.writeHead(404)
