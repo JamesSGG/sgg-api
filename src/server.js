@@ -19,6 +19,14 @@ const server = app.listen(port, hostName, () => {
   console.log(`API server is listening on http://${hostName}:${port}`)
 })
 
+app
+  .get('/', (request, response) => {
+    response.send('App is running')
+  })
+  .listen(app.get('port'), () => {
+    console.log('App is running, server is listening on port ', app.get('port'))
+  })
+
 // Shutdown Node.js app gracefully
 function handleExit(options, error) {
   const { cleanup, exit } = options
