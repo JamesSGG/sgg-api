@@ -20,8 +20,8 @@ For more information on how to use migrations reffer to [Knex documentation][kne
 This script is intended to be executed from inside a running Docker container, for example:
 
 ```bash
-$ docker-compose up             # Launch Docker containers, press CTR+Z (transfer to background)
-$ docker-compose exec api node tools/db migrate    # Alternatively, "yarn docker-db-migrate"
+$ docker-compose up -d          # Launch Docker containers in daemon mode
+$ docker-compose exec api node tools/db migrate    # Alternatively, "yarn docker:db:migrate"
 ```
 
 New to Docker? Please, skim through the [Docker in Action](http://amzn.to/2hmUrNP) book that
@@ -42,16 +42,6 @@ $ node tools/run                # Compile the app and launch Node.js server with
 ```
 
 This script will also execute `yarn install` in case some of the Node.js dependencies are missing.
-
-
-### [`publish.js`](./publish.js) — deployment
-
-```bash
-$ node tools/publish <host>     # Compile the app, build a Docker image and deploy it
-```
-
-..where `<host>` is the host name of the web server from your SSH configuration file
-(`~/.ssh/config`).
 
 
 [yarnrun]: https://yarnpkg.com/en/docs/cli/run
