@@ -49,6 +49,10 @@ app.use(cors({
   credentials: true,
   origin(origin, cb) {
     const whitelist = CORS_ORIGIN ? CORS_ORIGIN.split(',') : []
+
+    console.log('CORS whitelist:')
+    console.log(whitelist)
+
     cb(null, whitelist.includes(origin))
   },
 }))
