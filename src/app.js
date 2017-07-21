@@ -34,6 +34,9 @@ const hostName = HOSTNAME || 'localhost'
 const wsHostName = hostName === 'api' ? 'localhost' : hostName
 const wsPort = WS_PORT || 5000
 
+console.log(hostName)
+console.log(wsHostName)
+
 const subscriptionsPath = '/subscriptions'
 
 
