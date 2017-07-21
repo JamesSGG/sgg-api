@@ -71,9 +71,6 @@ function isValidReturnURL(url: string): boolean {
 function getSuccessRedirect(req) {
   const url = req.query.return || req.body.return || '/'
 
-  console.log(req.cookies)
-  console.log(req.session.cookie)
-
   if (!isValidReturnURL(url)) {
     return '/'
   }

@@ -62,12 +62,6 @@ app.use(session({
   resave: true,
   saveUninitialized: true,
   secret: SESSION_SECRET,
-  cookie: {
-    domain: '.herokuapp.com',
-    rolling: true,
-    httpOnly: false,
-    saveUninitialized: false,
-  },
 }))
 app.use(passport.initialize())
 app.use(passport.session())
