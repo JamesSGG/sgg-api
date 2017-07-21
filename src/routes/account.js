@@ -1,11 +1,10 @@
 // @flow
 
 import URL from 'url'
-import qs from 'querystring'
 import passport from 'passport'
 import validator from 'validator'
 import { Router } from 'express'
-import { compose } from 'lodash/fp'
+import { compose, compact } from 'lodash/fp'
 
 const router = new Router()
 
@@ -66,8 +65,8 @@ function isValidReturnURL(url: string): boolean {
 // then he's being redirected to http://localhost:8880/login/facebook (backend),
 // Passport.js redirects the user to Facebook, which redirects the user back to
 // http://localhost:8880/login/facebook/return and finally, user is being redirected
-// to http://localhost:3200/?sessionID=xxx where front-end middleware can save that
-// session ID into cookie (res.cookie.sid = req.query.sessionID).
+// to http://localhost:3200/?sessionId=xxx where front-end middleware can save that
+// session ID into cookie (res.cookie.sid = req.query.sessionId).
 function getSuccessRedirect(req) {
   const url = req.query.return || req.body.return || '/'
 
@@ -82,14 +81,12 @@ function getSuccessRedirect(req) {
 
   const { cookies, session } = req
   const { originalMaxAge } = session.cookie
+  const sessionId = cookies.sid
 
-  console.log(session)
-  console.log(cookies)
-
-  const queryString = qs.stringify({
-    sessionID: cookies.sid || null,
-    maxAge: originalMaxAge || null,
-  })
+  const queryString = compact([
+    sessionId && `sessionId=${sessionId}`,
+    originalMaxAge && `maxAge=${originalMaxAge}`,
+  ]).join('&')
 
   const separator = url.includes('?') ? '&' : '?'
 

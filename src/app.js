@@ -53,7 +53,7 @@ app.use(cors({
   },
 }))
 
-app.use(cookieParser(SESSION_SECRET))
+app.use(cookieParser())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 app.use(session({
