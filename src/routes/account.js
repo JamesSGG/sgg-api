@@ -76,15 +76,19 @@ function getSuccessRedirect(req) {
   }
 
   if (!getOrigin(url)) {
+    console.log(url)
     return url
   }
 
   const { cookies, session } = req
   const { originalMaxAge } = session.cookie
 
+  console.log(session)
+  console.log(cookies)
+
   const queryString = qs.stringify({
-    sessionID: cookies.sid,
-    maxAge: originalMaxAge,
+    sessionID: cookies.sid || null,
+    maxAge: originalMaxAge || null,
   })
 
   const separator = url.includes('?') ? '&' : '?'
