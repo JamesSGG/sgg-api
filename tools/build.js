@@ -5,17 +5,12 @@ const path = require('path')
 const rimraf = require('rimraf')
 const babel = require('babel-core')
 const chokidar = require('chokidar')
+const { debounce } = require('lodash/fp')
 
 const task = require('./task')
 
 
-const delay100ms = ((timeout) => (callback) => {
-  if (timeout) {
-    clearTimeout(timeout)
-  }
-
-  timeout = setTimeout(callback, 100) // eslint-disable-line no-param-reassign
-})()
+const delay100ms = debounce(100)
 
 module.exports = task('build', function buildTask({ watch = false, onComplete } = {}) {
   return new Promise((resolve) => {

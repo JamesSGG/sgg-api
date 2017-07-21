@@ -64,7 +64,7 @@ function spawnServer() {
   }
 
   const getDebugArgs = () => {
-    const defaultValue = isDebug ? ['--inspect-port=9229'] : ['--inspect-port=9229']
+    const defaultValue = isDebug ? ['--inspect-port=9229'] : []
     const reducer = (result, arg) => {
       const match = arg.match(/^--(?:inspect|debug)-port=(\S+:|)(\d+)$/)
       return match ? [`--inspect-port=${match[1]}${Number(match[2]) + 1}`] : result
@@ -111,24 +111,26 @@ module.exports = task('run', function runTask() {
     cp.spawnSync('node', ['tools/db.js', 'migrate'], { stdio: 'inherit' })
   }
 
+  function launchServer() {
+    if (server) {
+      server.kill('SIGTERM')
+    }
+
+    if (isDebug) {
+      server = spawnServer()
+    }
+    else {
+      server = serverQueue.splice(0, 1)[0] || spawnServer()
+      server.stdin.write('load') // this works faster than IPC
+      serverQueue.push(spawnServer())
+    }
+  }
+
   // Compile and launch the app in watch mode, restart it after each rebuild
-  function compileAndLaunchApp() {
+  function compileAndLaunchServer() {
     return build({
       watch: true,
-      onComplete() {
-        if (server) {
-          server.kill('SIGTERM')
-        }
-
-        if (isDebug) {
-          server = spawnServer()
-        }
-        else {
-          server = serverQueue.splice(0, 1)[0] || spawnServer()
-          server.stdin.write('load') // this works faster than IPC
-          serverQueue.push(spawnServer())
-        }
-      },
+      onComplete: launchServer,
     })
   }
 
@@ -145,9 +147,16 @@ module.exports = task('run', function runTask() {
     })
   }
 
+  if (process.env.NODE_ENV === 'production') {
+    return Promise
+      .resolve()
+      .then(launchServer)
+      .then(handleExit)
+  }
+
   return Promise
     .resolve()
     .then(dbMigrate)
-    .then(compileAndLaunchApp)
+    .then(compileAndLaunchServer)
     .then(handleExit)
 })
