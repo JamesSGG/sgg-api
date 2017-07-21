@@ -49,10 +49,6 @@ app.use(cors({
   credentials: true,
   origin(origin, cb) {
     const whitelist = CORS_ORIGIN ? CORS_ORIGIN.split(',') : []
-
-    console.log('CORS whitelist:')
-    console.log(whitelist)
-
     cb(null, whitelist.includes(origin))
   },
 }))
@@ -66,6 +62,9 @@ app.use(session({
   resave: true,
   saveUninitialized: true,
   secret: SESSION_SECRET,
+  cookie: {
+    httpOnly: false,
+  },
 }))
 app.use(passport.initialize())
 app.use(passport.session())
