@@ -12,6 +12,7 @@ let server
 
 const serverQueue = []
 const isDebug = process.execArgv.includes('--inspect')
+const isProd = process.env.NODE_ENV === 'production'
 
 // Gracefull shutdown
 process.once('cleanup', () => {
@@ -59,6 +60,10 @@ function buildApp() {
 // Launch `node build/server.js` on a background thread
 function spawnServer() {
   const getAppDepsArgs = () => {
+    if (isProd) {
+      return []
+    }
+
     const defaultValue = []
     const reducer = (args, dep) => args.concat(['--require', dep])
 
@@ -66,6 +71,10 @@ function spawnServer() {
   }
 
   const getDebugArgs = () => {
+    if (isProd) {
+      return []
+    }
+
     const defaultValue = isDebug ? ['--inspect-port=9229'] : []
     const reducer = (result, arg) => {
       const match = arg.match(/^--(?:inspect|debug)-port=(\S+:|)(\d+)$/)
@@ -124,7 +133,6 @@ module.exports = task('run', function runTask() {
     else {
       server = serverQueue.splice(0, 1)[0] || spawnServer()
       server.stdin.write('load') // this works faster than IPC
-      serverQueue.push(spawnServer())
     }
   }
 
