@@ -11,6 +11,7 @@
  */
 
 import DataLoader from 'dataloader'
+import faker from 'faker'
 import {
   compose,
   curry,
@@ -21,6 +22,27 @@ import {
 } from 'lodash/fp'
 
 import db from './db'
+
+
+export type User = {
+  // User ID
+  id: string,
+
+  // Display name
+  displayName: string,
+
+  // Avatar image URL
+  imageUrl: string,
+
+  // Emails
+  emails: Array<{ email: string, verified: boolean }>,
+
+  // Online status
+  onlineStatus: 'online' | 'offline',
+
+  // Friends
+  friends: Array<User>,
+}
 
 // Appends type information to an object.
 // e.g. { id: 1 } => { __type: 'User', id: 1 }
@@ -102,6 +124,60 @@ const getQueryCount = compose(
   first,
 )
 
+async function createUser() {
+  const record = {
+    display_name: faker.name.findName(),
+    image_url: faker.internet.avatar(),
+    online_status: 'offline',
+    emails: JSON.stringify([{
+      email: faker.internet.email().toLowerCase(),
+      verified: false,
+    }]),
+  }
+
+  const newUserResults = await db
+    .table('users')
+    .insert(record)
+    .returning('*')
+
+  const newUser = first(newUserResults)
+
+  console.log(newUser)
+
+  return newUser
+}
+
+async function addFriendToUser(userId: string, friendId: string) {
+  if (!userId || !friendId) {
+    return null
+  }
+
+  const hasFriendResult = await db
+    .table('user_friends')
+    .count('user_id')
+    .where('user_id', userId)
+    .andWhere('friend_id', friendId)
+
+  const hasFriend = getQueryCount(hasFriendResult) > 0
+
+  if (hasFriend) {
+    console.log(`User ${userId} is already friends with ${friendId}`)
+
+    return { userId, friendId }
+  }
+
+  const record = {
+    user_id: userId,
+    friend_id: friendId,
+  }
+
+  await db
+    .table('user_friends')
+    .insert(record)
+
+  return { userId, friendId }
+}
+
 export default {
   create: () => ({
     allUsers() {
@@ -135,36 +211,8 @@ export default {
 
       return { userId, status }
     },
-    async addFriendToUser(userId: string, friendId: string) {
-      if (!userId || !friendId) {
-        return null
-      }
-
-      const hasFriendResult = await db
-        .table('user_friends')
-        .count('user_id')
-        .where('user_id', userId)
-        .andWhere('friend_id', friendId)
-
-      const hasFriend = getQueryCount(hasFriendResult) > 0
-
-      if (hasFriend) {
-        console.log(`User ${userId} is already friends with ${friendId}`)
-
-        return { userId, friendId }
-      }
-
-      const record = {
-        user_id: userId,
-        friend_id: friendId,
-      }
-
-      await db
-        .table('user_friends')
-        .insert(record)
-
-      return { userId, friendId }
-    },
+    createUser,
+    addFriendToUser,
     friendsOfUser: new DataLoader(function resolve(keys) {
       const parseUsers = mapToMany(keys, property('user_id'), 'UserFriend')
 

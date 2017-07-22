@@ -56,6 +56,7 @@ export default {
 
       return { userId, status }
     },
+
     addFriendToUser(obj, args, context) {
       const { input: { userId, friendId } } = args
       const { addFriendToUser } = context
@@ -67,6 +68,24 @@ export default {
       })
 
       return { userId, friendId }
+    },
+
+    async createFriendForUser(obj, args, context) {
+      const { id } = args
+      const { createUser, addFriendToUser } = context
+
+      const newUser = await createUser()
+
+      addFriendToUser(id, newUser.id)
+
+      pubsub.publish(USER_FRIEND_ADDED, {
+        userFriendAdded: {
+          userId: id,
+          friendId: newUser.id,
+        },
+      })
+
+      return newUser
     },
   },
   Subscription: {

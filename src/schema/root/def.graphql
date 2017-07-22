@@ -49,6 +49,9 @@ type Mutation {
 
   # Adds a friend to a user
   addFriendToUser(input: AddFriendInput!): AddFriendResult
+
+  # Randomly generate a new user and add to specified user's friends list
+  createFriendForUser(id: ID!): User
 }
 
 type Subscription {
