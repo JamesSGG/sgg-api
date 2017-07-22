@@ -140,11 +140,7 @@ async function createUser() {
     .insert(record)
     .returning('*')
 
-  const newUser = first(newUserResults)
-
-  console.log(newUser)
-
-  return newUser
+  return first(newUserResults)
 }
 
 async function addFriendToUser(userId: string, friendId: string) {
