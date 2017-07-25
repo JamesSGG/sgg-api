@@ -12,7 +12,7 @@ const router = new Router()
 const loginProviders = [
   {
     provider: 'facebook',
-    options: { scope: ['email', 'user_friends'] },
+    options: { scope: ['email', 'public_profile', 'user_friends'] },
   },
   // {
   //   provider: 'google',

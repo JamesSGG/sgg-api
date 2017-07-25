@@ -14,9 +14,9 @@ const { FACEBOOK_ID, FACEBOOK_SECRET } = process.env
 export default new FacebookStrategy({
   clientID: FACEBOOK_ID,
   clientSecret: FACEBOOK_SECRET,
-  profileFields: ['name', 'email', 'picture', 'verified'],
   callbackURL: '/login/facebook/return',
   passReqToCallback: true,
+  profileFields: ['name', 'email', 'picture', 'verified', 'friends'],
 }, async (req, accessToken, refreshToken, profile, done) => {
   try {
     if (!isEmpty(profile.emails)) {
