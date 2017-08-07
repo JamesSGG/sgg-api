@@ -16,6 +16,12 @@ type User {
   # Online status
   onlineStatus: UserStatus
 
+  # Gamer tags
+  gamerTags: [String]
+
   # Friends
   friends: [User]
+
+  # All other users besides friends
+  nonFriends: [User]
 }

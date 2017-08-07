@@ -46,15 +46,17 @@ function isValidReturnURL(url: string): boolean {
     return true
   }
 
-  const { CORS_ORIGIN } = process.env
+  const { CORS_ORIGIN, NODE_ENV } = process.env
   const whitelist = CORS_ORIGIN ? CORS_ORIGIN.split(',') : []
 
   const isValidUrl = validator.isURL(url, {
+    require_tld: NODE_ENV === 'production',
     require_protocol: true,
     protocols: ['http', 'https'],
   })
 
-  const isAllowedOrigin = whitelist.includes(getOrigin(url))
+  const urlOrigin = getOrigin(url)
+  const isAllowedOrigin = whitelist.includes(urlOrigin)
 
   return isValidUrl && isAllowedOrigin
 }
@@ -75,7 +77,6 @@ function getSuccessRedirect(req) {
   }
 
   if (!getOrigin(url)) {
-    console.log(url)
     return url
   }
 

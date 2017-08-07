@@ -35,7 +35,10 @@ export type User = {
   imageUrl: string,
 
   // Emails
-  emails: Array<{ email: string, verified: boolean }>,
+  emails: Array<{
+    email: string,
+    verified: boolean,
+  }>,
 
   // Online status
   onlineStatus: 'online' | 'offline',
@@ -174,6 +177,30 @@ async function addFriendToUser(userId: string, friendId: string) {
   return { userId, friendId }
 }
 
+export async function setUserOnlineStatus(userId: string, status: 'online' | 'offline') {
+  const validStatusValues = [
+    'online',
+    'offline',
+  ]
+
+  if (!userId || !status) {
+    console.log('The `userId` and `status` arguments are both required')
+    return null
+  }
+
+  if (!validStatusValues.includes(status)) {
+    console.log('Expected `status` to be either "online" or "offline", got: %s', status)
+    return null
+  }
+
+  await db
+    .table('users')
+    .where('id', userId)
+    .update('online_status', status)
+
+  return { userId, status }
+}
+
 export default {
   create: () => ({
     allUsers() {
@@ -184,31 +211,9 @@ export default {
         .from('users')
         .then(parseUsers)
     },
-    async setUserOnlineStatus(userId: string, status: 'online' | 'offline') {
-      const validStatusValues = [
-        'online',
-        'offline',
-      ]
-
-      if (!userId || !status) {
-        console.log('The `userId` and `status` arguments are both required')
-        return null
-      }
-
-      if (!validStatusValues.includes(status)) {
-        console.log('Expected `status` to be either "online" or "offline", got: %s', status)
-        return null
-      }
-
-      await db
-        .table('users')
-        .where('id', userId)
-        .update('online_status', status)
-
-      return { userId, status }
-    },
     createUser,
     addFriendToUser,
+    setUserOnlineStatus,
     friendsOfUser: new DataLoader(function resolve(keys) {
       const parseUsers = mapToMany(keys, property('user_id'), 'UserFriend')
 
@@ -218,6 +223,24 @@ export default {
         .whereIn('user_id', keys)
         .then(parseUsers)
     }),
+    nonFriendsOfUser(userId: string) {
+      const parseUsers = map((row) => assignType(row, 'User'))
+
+      return db
+        .select('user_id', 'friend_id')
+        .from('user_friends')
+        .where('user_id', userId)
+        .then((results) => {
+          const friendIds = results.map(property('friend_id'))
+          const excludedUserIds = friendIds.concat([userId])
+
+          return db
+            .select('*')
+            .from('users')
+            .whereNotIn('id', excludedUserIds)
+            .then(parseUsers)
+        })
+    },
     usersById: new DataLoader(function resolve(keys: Array<*>) {
       const parseUsers = mapTo(keys, property('id'), 'User')
 
@@ -225,6 +248,15 @@ export default {
         .select('*')
         .from('users')
         .whereIn('id', keys)
+        .then(parseUsers)
+    }),
+    usersByNotId: new DataLoader(function resolve(keys: Array<*>) {
+      const parseUsers = mapToMany(keys, property('id'), 'User')
+
+      return db
+        .select('*')
+        .from('users')
+        .whereNotIn('id', keys)
         .then(parseUsers)
     }),
   }),

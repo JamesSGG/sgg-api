@@ -24,6 +24,10 @@ export default {
     onlineStatus(obj) {
       return obj.online_status
     },
+    // TODO: Implement this.
+    gamerTags() {
+      return []
+    },
     async friends(obj, args, context) {
       const { id } = obj
       const { usersById, friendsOfUser } = context
@@ -40,6 +44,16 @@ export default {
       }
 
       return usersById.loadMany(friendIds)
+    },
+    async nonFriends(obj, args, context) {
+      const { id } = obj
+      const { nonFriendsOfUser } = context
+
+      if (!id) {
+        return null
+      }
+
+      return nonFriendsOfUser(id)
     },
   },
 }

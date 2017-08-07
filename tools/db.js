@@ -46,25 +46,37 @@ module.exports = task('db', async () => {
     switch (command) {
       case 'version': {
         db = knex(config)
-        await db.migrate.currentVersion(config).then(console.log)
+
+        await db.migrate
+          .currentVersion(config)
+          .then(console.log)
+
         break
       }
       case 'migration': {
-        fs.writeFileSync(`migrations/${version}_${process.argv[3] || 'new'}.js`, template, 'utf8')
+        const filePath = `migrations/${version}_${process.argv[3] || 'new'}.js`
+
+        fs.writeFileSync(filePath, template, 'utf8')
+
         break
       }
       case 'rollback': {
         db = knex(config)
+
         await db.migrate.rollback(config)
+
         break
       }
       case 'seed': {
         db = knex(config)
+
         await db.seed.run(config)
+
         break
       }
       default: {
         db = knex(config)
+
         await db.migrate.latest(config)
       }
     }

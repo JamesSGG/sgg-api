@@ -33,7 +33,6 @@ services:
       - DATABASE_URL=postgres://postgres@db:5432/dev
       - DATABASE_DEBUG=false
       - REDIS_URL=redis://redis:6379/0
-      - BABEL_DISABLE_CACHE=1
       - SESSION_SECRET
       - FACEBOOK_ID
       - FACEBOOK_SECRET
@@ -53,6 +52,8 @@ services:
   db:
     image: postgres:9.6.3-alpine
     read_only: true
+    ports:
+      - "5433:5432"
     tmpfs:
       - /tmp
       - /var/run/postgresql

@@ -5,10 +5,11 @@ import { execute, subscribe } from 'graphql'
 import { SubscriptionServer } from 'subscriptions-transport-ws'
 import { partial } from 'lodash/fp'
 
-import app from './app'
+import app, { pubsub } from './app'
 import db from './db'
 import redis from './redis'
 import schema from './schema'
+import { setUserOnlineStatus } from './DataLoaders'
 
 const {
   PORT,
@@ -20,6 +21,14 @@ const port = PORT || 8880
 
 const ws = createServer(app)
 
+function setUserStatus(userId, status) {
+  setUserOnlineStatus(userId, status)
+
+  pubsub.publish('USER_ONLINE_STATUS_CHANGED', {
+    userOnlineStatusChanged: { userId, status },
+  })
+}
+
 // Launch Node.js server
 const server = ws.listen(port, hostName, () => {
   console.log(`API server is listening on http://${hostName}:${port}`)
@@ -29,6 +38,17 @@ const server = ws.listen(port, hostName, () => {
       schema,
       execute,
       subscribe,
+      onConnect(connectionParams) {
+        const { userId } = connectionParams
+
+        if (userId) {
+          return Promise
+            .resolve()
+            .then(() => ({
+              activeUserId: userId,
+            }))
+        }
+      },
     },
     {
       server: ws,
@@ -45,17 +65,18 @@ function handleExit(options, error) {
 
   if (cleanup) {
     const actions = [server.close, db.destroy, redis.quit]
+    const lastIndex = actions.length - 1
 
     actions.forEach((close, i) => {
       try {
         close(() => {
-          if (i === actions.length - 1) {
+          if (i === lastIndex) {
             process.exit()
           }
         })
       }
       catch (_error) {
-        if (i === actions.length - 1) {
+        if (i === lastIndex) {
           process.exit()
         }
       }

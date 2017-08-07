@@ -1,5 +1,6 @@
 
 import { withFilter } from 'graphql-subscriptions'
+import { isEmpty } from 'lodash/fp'
 
 import { pubsub } from '../../app'
 
@@ -92,7 +93,17 @@ export default {
     userOnlineStatusChanged: {
       subscribe: withFilter(
         () => pubsub.asyncIterator(USER_ONLINE_STATUS_CHANGED),
-        () => true,
+        (payload, variables) => {
+          const { userIds } = variables
+
+          if (!userIds || isEmpty(userIds)) {
+            return true
+          }
+
+          const { userFriendAdded: { userId } } = payload
+
+          return userIds.includes(userId)
+        },
       ),
     },
   },
