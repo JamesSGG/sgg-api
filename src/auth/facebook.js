@@ -16,7 +16,13 @@ export default new FacebookStrategy({
   clientSecret: FACEBOOK_SECRET,
   callbackURL: '/login/facebook/return',
   passReqToCallback: true,
-  profileFields: ['name', 'email', 'picture', 'verified', 'friends'],
+  profileFields: [
+    'name',
+    'email',
+    'picture.type(large)',
+    'verified',
+    'friends',
+  ],
 }, async (req, accessToken, refreshToken, profile, done) => {
   try {
     if (!isEmpty(profile.emails)) {

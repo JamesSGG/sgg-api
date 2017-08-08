@@ -1,7 +1,9 @@
 
-import { first } from 'lodash/fp'
+import { complement, first, isEmpty } from 'lodash/fp'
 
 import db, { parseRecord } from '../db'
+
+const notEmpty = complement(isEmpty)
 
 // Creates or updates the external login credentials
 // and returns the currently authenticated user.
@@ -13,6 +15,8 @@ export default async function login(req, provider, profile, tokens) {
     emails,
     photos,
   } = profile
+
+  const imageUrl = notEmpty(photos) ? first(photos).value : null
 
   let user
 
@@ -46,7 +50,7 @@ export default async function login(req, provider, profile, tokens) {
   if (!user) {
     const emailData = (emails || []).map((x) => ({
       email: x.value,
-      verified: x.verified || false,
+      verified: Boolean(x.verified),
     }))
 
     const users = await db
@@ -54,7 +58,7 @@ export default async function login(req, provider, profile, tokens) {
       .insert({
         display_name: displayName,
         emails: JSON.stringify(emailData),
-        image_url: photos && photos.length ? first(photos).value : null,
+        image_url: imageUrl,
       })
       .returning('*')
 
@@ -92,6 +96,16 @@ export default async function login(req, provider, profile, tokens) {
         tokens: JSON.stringify(tokens),
         profile: JSON.stringify(profile._json),
         updated_at: db.raw('CURRENT_TIMESTAMP'),
+      })
+  }
+
+  // Fix tiny Facebook profile photo
+  if (user.image_url.includes('50x50')) {
+    await db
+      .table('users')
+      .where('id', user.id)
+      .update({
+        image_url: imageUrl,
       })
   }
 
