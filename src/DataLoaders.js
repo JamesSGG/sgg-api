@@ -121,11 +121,7 @@ export const mapTo = curry(_mapTo)
 export const mapToMany = curry(_mapToMany)
 export const mapToValues = curry(_mapToValues)
 
-const getQueryCount = compose(
-  toNumber,
-  property('count'),
-  first,
-)
+const getQueryCount = compose(toNumber, property('count'))
 
 async function createUser() {
   const record = {
@@ -156,6 +152,7 @@ async function addFriendToUser(userId: string, friendId: string) {
     .count('user_id')
     .where('user_id', userId)
     .andWhere('friend_id', friendId)
+    .first()
 
   const hasFriend = getQueryCount(hasFriendResult) > 0
 
@@ -223,6 +220,12 @@ export default {
         .whereIn('user_id', keys)
         .then(parseUsers)
     }),
+    userGamesPlayed(userId: string) {
+      return db
+        .select('game_title', 'game_platform', 'gamer_tag')
+        .from('user_games_played')
+        .where('user_id', userId)
+    },
     nonFriendsOfUser(userId: string) {
       const parseUsers = map((row) => assignType(row, 'User'))
 

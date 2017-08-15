@@ -1,4 +1,15 @@
 
+type GamePlayed {
+  # The title of the game
+  title: String,
+
+  # The platform of the game
+  platform: String,
+
+  # The user's Steam username, Xbox gamer tag, PSN name, etc. for this game
+  gamerTag: String,
+}
+
 # User record
 type User {
   # User ID
@@ -16,8 +27,8 @@ type User {
   # Online status
   onlineStatus: UserStatus
 
-  # Gamer tags
-  gamerTags: [String]
+  # Games played
+  gamesPlayed: [GamePlayed]
 
   # Friends
   friends: [User]

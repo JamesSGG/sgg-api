@@ -22,6 +22,13 @@ input AddFriendInput {
   friendId: ID!
 }
 
+input GamePlayedInput {
+  id: ID
+  userId: ID!
+  gameTitle: String!
+  gamerTag: String
+}
+
 type UserStatusInfo {
   userId: ID!
   status: UserStatus
@@ -52,6 +59,9 @@ type Mutation {
 
   # Randomly generate a new user and add to specified user's friends list
   createFriendForUser(id: ID!): User
+
+  # Adds a new entry for the "games played" section on the user profile page
+  addGamePlayed(input: GamePlayedInput!): GamePlayed
 }
 
 type Subscription {

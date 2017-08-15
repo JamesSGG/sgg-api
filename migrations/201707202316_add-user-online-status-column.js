@@ -4,7 +4,7 @@ module.exports.up = async (db) => {
     table
       .enum('online_status', ['online', 'offline'])
       .notNullable()
-      .defaultsTo('offline')
+      .defaultTo('offline')
   })
 }
 
