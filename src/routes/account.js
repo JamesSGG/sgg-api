@@ -80,14 +80,16 @@ function getSuccessRedirect(req) {
     return url
   }
 
-  const { cookies, session, user } = req
-  const { originalMaxAge } = session.cookie
-  const sessionId = cookies.sid
+  // const { cookies, session, user } = req
+  // const { originalMaxAge } = session.cookie
+  // const sessionId = cookies.sid
+
+  const { user = {} } = req
 
   const queryString = compact([
-    user && user.id && `userId=${user.id}`,
-    sessionId && `sessionId=${sessionId}`,
-    originalMaxAge && `maxAge=${originalMaxAge}`,
+    user.id && `userId=${user.id}`,
+    // sessionId && `sessionId=${sessionId}`,
+    // originalMaxAge && `maxAge=${originalMaxAge}`,
   ]).join('&')
 
   const separator = url.includes('?') ? '&' : '?'
