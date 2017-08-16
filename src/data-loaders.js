@@ -23,30 +23,6 @@ import {
 
 import db from './db'
 
-
-export type User = {
-  // User ID
-  id: string,
-
-  // Display name
-  displayName: string,
-
-  // Avatar image URL
-  imageUrl: string,
-
-  // Emails
-  emails: Array<{
-    email: string,
-    verified: boolean,
-  }>,
-
-  // Online status
-  onlineStatus: 'online' | 'offline',
-
-  // Friends
-  friends: Array<User>,
-}
-
 // Appends type information to an object.
 // e.g. { id: 1 } => { __type: 'User', id: 1 }
 export function assignType(
@@ -222,7 +198,7 @@ export default {
     }),
     userGamesPlayed(userId: string) {
       return db
-        .select('game_title', 'game_platform', 'gamer_tag')
+        .select('title', 'platform', 'gamer_tag')
         .from('user_games_played')
         .where('user_id', userId)
     },

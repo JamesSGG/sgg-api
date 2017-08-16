@@ -9,7 +9,7 @@ import app, { pubsub } from './app'
 import db from './db'
 import redis from './redis'
 import schema from './schema'
-import { setUserOnlineStatus } from './DataLoaders'
+import { setUserOnlineStatus } from './data-loaders'
 
 const {
   PORT,

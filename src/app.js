@@ -11,11 +11,12 @@ import PrettyError from 'pretty-error'
 import { printSchema } from 'graphql'
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express'
 import { RedisPubSub } from 'graphql-redis-subscriptions'
+import dedent from 'dedent'
 
 import redis from './redis'
 import passport from './auth'
 import schema from './schema'
-import DataLoaders from './DataLoaders'
+import DataLoaders from './data-loaders'
 import accountRoutes from './routes/account'
 
 const {
@@ -102,10 +103,32 @@ if (isDev) {
   app.get('/', (req, res) => {
     if (req.user) {
       const { displayName } = req.user
-      res.send(`<p>Welcome, ${displayName}! (<a href="javascript:fetch('/login/clear', { method: 'POST', credentials: 'include' }).then(() => window.location = '/')">Log Out</a>)</p>`)
+      const template = dedent`
+        <p>
+          Welcome, ${displayName}!
+        </p>
+        <p>
+          <a href="javascript:fetch('/login/clear', { method: 'POST', credentials: 'include' }).then(() => window.location = '/')">
+            Log Out
+          </a>
+        </p>
+      `
+
+      res.send(template)
     }
     else {
-      res.send('<p>Welcome, guest! (<a href="/login/facebook">Sign In</a>)</p>')
+      const template = dedent`
+        <p>
+          Welcome, Guest!
+        </p>
+        <p>
+          <a href="/login/facebook">
+            Sign In with Facebook
+          </a>
+        </p>
+      `
+
+      res.send(template)
     }
   })
 }
