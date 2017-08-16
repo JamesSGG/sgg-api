@@ -2,7 +2,7 @@
 import { complement, first, isEmpty } from 'lodash/fp'
 
 import db, { parseRecord } from '../db'
-import { isUserSubscribedToList, addUserToList } from '../adapters/mailchimp'
+import { addUserToList } from '../adapters/mailchimp'
 
 const notEmpty = complement(isEmpty)
 
@@ -112,11 +112,9 @@ export default async function login(req, provider, profile, tokens) {
 
   // Add user to MailChimp list if not already subscribed.
   const listId = '1acb1a7282'
-  const userEmail = first(user.emails).email
+  const { email } = first(user.emails)
 
-  if (!isUserSubscribedToList(listId, userEmail)) {
-    addUserToList(listId, userEmail)
-  }
+  addUserToList(listId, email)
 
   return parseRecord(user, [
     'id',
