@@ -1,10 +1,10 @@
 
 type GamePlayed {
   # The title of the game
-  title: String
+  gameTitle: String
 
   # The platform of the game
-  platform: String
+  gamePlatform: String
 
   # The user's Steam username, Xbox gamer tag, PSN name, etc. for this game
   gamerTag: String
