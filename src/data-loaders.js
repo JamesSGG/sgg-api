@@ -198,7 +198,7 @@ export default {
     }),
     userGamesPlayed(userId: string) {
       return db
-        .select('title', 'platform', 'gamer_tag')
+        .select('game_title', 'game_platform', 'gamer_tag')
         .from('user_games_played')
         .where('user_id', userId)
     },
