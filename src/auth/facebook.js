@@ -29,8 +29,6 @@ export default new FacebookStrategy({
       profile.emails[0].verified = Boolean(profile._json.verified)
     }
 
-    console.log(profile)
-
     const { givenName, familyName } = profile.name
     profile.displayName = profile.displayName || `${givenName} ${familyName}`
 
