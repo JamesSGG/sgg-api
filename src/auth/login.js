@@ -111,7 +111,7 @@ export default async function login(req, provider, profile, tokens) {
   }
 
   // Add user to MailChimp list if not already subscribed.
-  const listId = '1acb1a7282'
+  const listId = '908a975f19'
   const { email } = first(user.emails)
 
   addUserToList(listId, email)
