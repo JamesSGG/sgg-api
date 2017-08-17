@@ -58,6 +58,7 @@ async function _addUserToList(listId, email) {
 
   return mailChimp.post(`/lists/${listId}/members`, {
     email_address: email,
+    status: 'subscribed',
   })
 }
 
