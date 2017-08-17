@@ -84,7 +84,7 @@ function getSuccessRedirect(req) {
   // const { originalMaxAge } = session.cookie
   // const sessionId = cookies.sid
 
-  const { user } = req
+  const { user = {} } = req
 
   const queryString = compact([
     user.id && `userId=${user.id}`,
