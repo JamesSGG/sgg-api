@@ -1,12 +1,13 @@
 
+// A game that has been played by a user
 export type GamePlayed = {
-  //  The title of the game
+  // The title of the game
   title: ?string,
 
-  //  The platform of the game
+  // The platform of the game
   platform: ?string,
 
-  //  The user's Steam username, Xbox gamer tag, PSN name, etc. for this game
+  // The user's Steam username, Xbox gamer tag, PSN name, etc. for this game
   gamerTag: ?string,
 }
 

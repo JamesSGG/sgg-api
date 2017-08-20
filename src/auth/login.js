@@ -1,5 +1,5 @@
 
-import { complement, first, isEmpty } from 'lodash/fp'
+import { complement, head, isEmpty } from 'lodash/fp'
 
 import db, { parseRecord } from '../db'
 import { addUserToList } from '../adapters/mailchimp'
@@ -17,7 +17,7 @@ export default async function login(req, provider, profile, tokens) {
     photos,
   } = profile
 
-  const imageUrl = notEmpty(photos) ? first(photos).value : null
+  const imageUrl = notEmpty(photos) ? head(photos).value : null
 
   let user
 
@@ -35,9 +35,9 @@ export default async function login(req, provider, profile, tokens) {
       .where({ 'logins.provider': provider, 'logins.id': id })
       .first('users.*')
 
-    if (!user && emails && emails.length && first(emails).verified === true) {
+    if (!user && emails && emails.length && head(emails).verified === true) {
       const emailData = [{
-        email: first(emails).value,
+        email: head(emails).value,
         verified: true,
       }]
 
@@ -63,7 +63,7 @@ export default async function login(req, provider, profile, tokens) {
       })
       .returning('*')
 
-    user = first(users)
+    user = head(users)
   }
 
   const loginKeys = {
@@ -112,7 +112,7 @@ export default async function login(req, provider, profile, tokens) {
 
   // Add user to MailChimp list if not already subscribed.
   const listId = '908a975f19'
-  const { email } = first(user.emails)
+  const { email } = head(user.emails)
 
   addUserToList(listId, email)
 

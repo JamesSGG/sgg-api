@@ -1,7 +1,7 @@
 // @flow
 
 import MailChimp from 'mailchimp-api-v3'
-import { curry, any, matchesProperty } from 'lodash/fp'
+import { curry, any, propEq } from 'lodash/fp'
 
 export type MailChimpAdapter = {
   request(options: *): Promise<*>,
@@ -46,7 +46,7 @@ async function _isUserSubscribedToList(
     path: `/lists/${listId}/members`,
   })
 
-  return any(matchesProperty('email_address', email), members)
+  return any(propEq('email_address', email), members)
 }
 
 export const isUserSubscribedToList = curry(_isUserSubscribedToList)

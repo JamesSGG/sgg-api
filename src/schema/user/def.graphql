@@ -1,4 +1,5 @@
 
+# A game that has been played by a user
 type GamePlayed {
   # The title of the game
   gameTitle: String

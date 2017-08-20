@@ -39,15 +39,9 @@ const server = ws.listen(port, hostName, () => {
       execute,
       subscribe,
       onConnect(connectionParams) {
-        const { userId } = connectionParams
+        const { userId = null } = connectionParams
 
-        if (userId) {
-          return Promise
-            .resolve()
-            .then(() => ({
-              activeUserId: userId,
-            }))
-        }
+        return Promise.resolve({ currentUserId: userId })
       },
     },
     {

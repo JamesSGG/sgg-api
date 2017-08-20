@@ -17,7 +17,7 @@ import {
   curry,
   property,
   map,
-  first,
+  head,
   toNumber,
 } from 'lodash/fp'
 
@@ -25,15 +25,14 @@ import db from './db'
 
 // Appends type information to an object.
 // e.g. { id: 1 } => { __type: 'User', id: 1 }
-export function assignType(
-  obj: Object,
-  type: string,
-): Object {
+function _assignType(type: string, obj: Object): Object {
   return {
     __type: type,
     ...obj,
   }
 }
+
+const assignType = curry(_assignType)
 
 export function _mapTo(
   keys: Array<*>,
@@ -46,7 +45,7 @@ export function _mapTo(
 
   rows.forEach((row) => {
     const key = getRowKey(row)
-    const value = assignType(row, type)
+    const value = assignType(type, row)
 
     group.set(key, value)
   })
@@ -65,7 +64,7 @@ export function _mapToMany(
 
   rows.forEach((row) => {
     const key = getRowKey(row)
-    const newValue = assignType(row, type)
+    const newValue = assignType(type, row)
     const currentValue = group.get(key) || []
 
     group.set(key, [...currentValue, newValue])
@@ -115,7 +114,7 @@ async function createUser() {
     .insert(record)
     .returning('*')
 
-  return first(newUserResults)
+  return head(newUserResults)
 }
 
 async function addFriendToUser(userId: string, friendId: string) {
@@ -177,7 +176,7 @@ export async function setUserOnlineStatus(userId: string, status: 'online' | 'of
 export default {
   create: () => ({
     allUsers() {
-      const parseUsers = map((row) => assignType(row, 'User'))
+      const parseUsers = map(assignType('User'))
 
       return db
         .select('*')
@@ -203,7 +202,7 @@ export default {
         .where('user_id', userId)
     },
     nonFriendsOfUser(userId: string) {
-      const parseUsers = map((row) => assignType(row, 'User'))
+      const parseUsers = map(assignType('User'))
 
       return db
         .select('user_id', 'friend_id')
