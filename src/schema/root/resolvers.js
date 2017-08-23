@@ -1,8 +1,9 @@
 
+import GraphQLJSON from 'graphql-type-json'
 import { withFilter } from 'graphql-subscriptions'
 import { isEmpty } from 'lodash/fp'
 
-import { pubsub } from '../../app'
+import { pubsub } from '../../redis'
 
 const USER_ONLINE_STATUS_CHANGED = 'USER_ONLINE_STATUS_CHANGED'
 const USER_FRIEND_ADDED = 'USER_FRIEND_ADDED'
@@ -12,9 +13,10 @@ const USER_FRIEND_ADDED = 'USER_FRIEND_ADDED'
 // }
 
 export default {
+  JSON: GraphQLJSON,
   Query: {
     user(obj, args, context) {
-      const { usersById } = context
+      const { usersById } = context.loaders
       const { id } = args
 
       if (!id) {
@@ -24,18 +26,14 @@ export default {
       return usersById.load(id)
     },
 
-    /**
-     * Dataloader doesn't support loading entire collections so in this case
-     * we just query the DB directly.
-     */
     users(obj, args, context) {
-      const { allUsers } = context
+      const { allUsers } = context.queries
 
       return allUsers()
     },
 
     currentUser(obj, args, context) {
-      const { user, usersById } = context
+      const { user, usersById } = context.loaders
 
       if (!user) {
         return null
@@ -43,11 +41,17 @@ export default {
 
       return usersById.load(user.id)
     },
+
+    logins(obj, args, context) {
+      const { getUserLogins } = context.queries
+
+      return getUserLogins()
+    },
   },
   Mutation: {
     setUserOnlineStatus(obj, args, context) {
       const { input: { userId, status } } = args
-      const { setUserOnlineStatus } = context
+      const { setUserOnlineStatus } = context.queries
 
       setUserOnlineStatus(userId, status)
 
@@ -60,7 +64,7 @@ export default {
 
     addFriendToUser(obj, args, context) {
       const { input: { userId, friendId } } = args
-      const { addFriendToUser } = context
+      const { addFriendToUser } = context.queries
 
       addFriendToUser(userId, friendId)
 
@@ -73,7 +77,7 @@ export default {
 
     async createFriendForUser(obj, args, context) {
       const { id } = args
-      const { createUser, addFriendToUser } = context
+      const { createUser, addFriendToUser } = context.queries
 
       const newUser = await createUser()
 

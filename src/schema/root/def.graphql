@@ -1,4 +1,6 @@
 
+scalar JSON
+
 enum UserStatus {
   online
   offline
@@ -48,6 +50,8 @@ type Query {
 
   # Fetch the current logged-in user
   currentUser: User
+
+  logins: [UserLogin]
 }
 
 type Mutation {

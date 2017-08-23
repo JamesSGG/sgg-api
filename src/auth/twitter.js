@@ -12,14 +12,16 @@ import login from './login'
 
 const { TWITTER_KEY, TWITTER_SECRET } = process.env
 
-export default new TwitterStrategy({
+const config = {
   consumerKey: TWITTER_KEY,
   consumerSecret: TWITTER_SECRET,
   callbackURL: '/login/twitter/return',
   includeEmail: true,
   includeStatus: false,
   passReqToCallback: true,
-}, async (req, token, tokenSecret, profile, done) => {
+}
+
+async function verify(req, token, tokenSecret, profile, done) {
   try {
     if (!isEmpty(profile.emails)) {
       profile.emails[0].verified = true
@@ -31,4 +33,6 @@ export default new TwitterStrategy({
   catch (err) {
     done(err)
   }
-})
+}
+
+export default new TwitterStrategy(config, verify)

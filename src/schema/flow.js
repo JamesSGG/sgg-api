@@ -1,4 +1,23 @@
 
+export type LoginProvider =
+  | 'facebook'
+  | 'twitter'
+  | 'google'
+
+export type LoginProfile = {
+  id: string,
+  emails: Array<{| value: string, verified: boolean |}>,
+  photos: Array<{| value: string |}>,
+  displayName: string,
+  username: string,
+  _json: {},
+}
+
+export type LoginTokens = {
+  accessToken?: string,
+  refreshToken?: string,
+}
+
 // A game that has been played by a user
 export type GamePlayed = {
   // The title of the game

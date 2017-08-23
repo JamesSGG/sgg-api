@@ -10,9 +10,9 @@ import flash from 'express-flash'
 import PrettyError from 'pretty-error'
 import { printSchema } from 'graphql'
 import { graphqlExpress, graphiqlExpress } from 'graphql-server-express'
-import { RedisPubSub } from 'graphql-redis-subscriptions'
-import dedent from 'dedent'
+import { stripIndent } from 'common-tags'
 
+import * as dbQueries from './db'
 import redis from './redis'
 import passport from './auth'
 import schema from './schema'
@@ -21,7 +21,6 @@ import accountRoutes from './routes/account'
 
 const {
   NODE_ENV,
-  REDIS_URL,
   CORS_ORIGIN,
   SESSION_SECRET,
 } = process.env
@@ -62,7 +61,12 @@ const graphqlMiddleware = graphqlExpress((request) => ({
   schema,
   context: {
     user: request.user,
-    ...DataLoaders.create(),
+    queries: {
+      ...dbQueries,
+    },
+    loaders: {
+      ...DataLoaders.create(),
+    },
   },
   debug: isDev,
   formatError(error) {
@@ -81,8 +85,8 @@ const graphqlMiddleware = graphqlExpress((request) => ({
 
 const subscriptionsBaseUrl = (
   isDev
-  ? 'ws://localhost:8880'
-  : 'wss://social-gaming-guild-api.herokuapp.com'
+    ? 'ws://localhost:8880'
+    : 'wss://social-gaming-guild-api.herokuapp.com'
 )
 
 const graphqlUiMiddleware = graphiqlExpress({
@@ -103,12 +107,22 @@ if (isDev) {
   app.get('/', (req, res) => {
     if (req.user) {
       const { displayName } = req.user
-      const template = dedent`
+      const template = stripIndent`
+        <script>
+          function __doLogout__(event) {
+            event.preventDefault()
+
+            const fetchOptions = { method: 'POST', credentials: 'include' }
+            const fetchCallback = () => window.location = '/'
+
+            return fetch('/login/clear', fetchOptions).then(fetchCallback)
+          }
+        </script>
         <p>
           Welcome, ${displayName}!
         </p>
         <p>
-          <a href="javascript:fetch('/login/clear', { method: 'POST', credentials: 'include' }).then(() => window.location = '/')">
+          <a href="/logout" onclick="__doLogout__">
             Log Out
           </a>
         </p>
@@ -117,7 +131,7 @@ if (isDev) {
       res.send(template)
     }
     else {
-      const template = dedent`
+      const template = stripIndent`
         <p>
           Welcome, Guest!
         </p>
@@ -140,14 +154,6 @@ prettyError.skipPackage('express')
 app.use((err, req, res, next) => {
   process.stderr.write(prettyError.render(err))
   next()
-})
-
-// Subscriptions
-
-export const pubsub = new RedisPubSub({
-  connection: {
-    url: REDIS_URL,
-  },
 })
 
 export default app

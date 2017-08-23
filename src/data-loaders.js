@@ -11,14 +11,10 @@
  */
 
 import DataLoader from 'dataloader'
-import faker from 'faker'
 import {
-  compose,
   curry,
   property,
   map,
-  head,
-  toNumber,
 } from 'lodash/fp'
 
 import db from './db'
@@ -96,82 +92,6 @@ export const mapTo = curry(_mapTo)
 export const mapToMany = curry(_mapToMany)
 export const mapToValues = curry(_mapToValues)
 
-const getQueryCount = compose(toNumber, property('count'))
-
-async function createUser() {
-  const record = {
-    display_name: faker.name.findName(),
-    image_url: faker.internet.avatar(),
-    online_status: 'offline',
-    emails: JSON.stringify([{
-      email: faker.internet.email().toLowerCase(),
-      verified: false,
-    }]),
-  }
-
-  const newUserResults = await db
-    .table('users')
-    .insert(record)
-    .returning('*')
-
-  return head(newUserResults)
-}
-
-async function addFriendToUser(userId: string, friendId: string) {
-  if (!userId || !friendId) {
-    return null
-  }
-
-  const hasFriendResult = await db
-    .table('user_friends')
-    .count('user_id')
-    .where('user_id', userId)
-    .andWhere('friend_id', friendId)
-    .first()
-
-  const hasFriend = getQueryCount(hasFriendResult) > 0
-
-  if (hasFriend) {
-    console.log(`User ${userId} is already friends with ${friendId}`)
-
-    return { userId, friendId }
-  }
-
-  const record = {
-    user_id: userId,
-    friend_id: friendId,
-  }
-
-  await db
-    .table('user_friends')
-    .insert(record)
-
-  return { userId, friendId }
-}
-
-export async function setUserOnlineStatus(userId: string, status: 'online' | 'offline') {
-  const validStatusValues = [
-    'online',
-    'offline',
-  ]
-
-  if (!userId || !status) {
-    console.log('The `userId` and `status` arguments are both required')
-    return null
-  }
-
-  if (!validStatusValues.includes(status)) {
-    console.log('Expected `status` to be either "online" or "offline", got: %s', status)
-    return null
-  }
-
-  await db
-    .table('users')
-    .where('id', userId)
-    .update('online_status', status)
-
-  return { userId, status }
-}
 
 export default {
   create: () => ({
@@ -183,9 +103,6 @@ export default {
         .from('users')
         .then(parseUsers)
     },
-    createUser,
-    addFriendToUser,
-    setUserOnlineStatus,
     friendsOfUser: new DataLoader(function resolve(keys) {
       const parseUsers = mapToMany(keys, property('user_id'), 'UserFriend')
 

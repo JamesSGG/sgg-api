@@ -11,7 +11,7 @@ import login from './login'
 
 const { FACEBOOK_ID, FACEBOOK_SECRET } = process.env
 
-export default new FacebookStrategy({
+const config = {
   clientID: FACEBOOK_ID,
   clientSecret: FACEBOOK_SECRET,
   callbackURL: '/login/facebook/return',
@@ -23,19 +23,27 @@ export default new FacebookStrategy({
     'verified',
     'friends',
   ],
-}, async (req, accessToken, refreshToken, profile, done) => {
+}
+
+async function verify(req, accessToken, refreshToken, profile, done) {
   try {
-    if (!isEmpty(profile.emails)) {
-      profile.emails[0].verified = Boolean(profile._json.verified)
+    const { emails, name, displayName, _json } = profile
+    const { givenName, familyName } = name
+
+    profile.displayName = displayName || `${givenName} ${familyName}`
+
+    if (!isEmpty(emails)) {
+      profile.emails[0].verified = Boolean(_json.verified)
     }
 
-    const { givenName, familyName } = profile.name
-    profile.displayName = profile.displayName || `${givenName} ${familyName}`
+    const tokens = { accessToken, refreshToken }
+    const user = await login(req, 'facebook', profile, tokens)
 
-    const user = await login(req, 'facebook', profile, { accessToken, refreshToken })
     done(null, user)
   }
   catch (err) {
     done(err)
   }
-})
+}
+
+export default new FacebookStrategy(config, verify)

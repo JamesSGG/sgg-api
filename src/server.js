@@ -5,11 +5,10 @@ import { execute, subscribe } from 'graphql'
 import { SubscriptionServer } from 'subscriptions-transport-ws'
 import { partial } from 'lodash/fp'
 
-import app, { pubsub } from './app'
+import app from './app'
 import db from './db'
 import redis from './redis'
 import schema from './schema'
-import { setUserOnlineStatus } from './data-loaders'
 
 const {
   PORT,
@@ -20,14 +19,6 @@ const hostName = HOSTNAME || '0.0.0.0'
 const port = PORT || 8880
 
 const ws = createServer(app)
-
-function setUserStatus(userId, status) {
-  setUserOnlineStatus(userId, status)
-
-  pubsub.publish('USER_ONLINE_STATUS_CHANGED', {
-    userOnlineStatusChanged: { userId, status },
-  })
-}
 
 // Launch Node.js server
 const server = ws.listen(port, hostName, () => {

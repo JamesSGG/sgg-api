@@ -10,12 +10,14 @@ import login from './login'
 
 const { GOOGLE_ID, GOOGLE_SECRET } = process.env
 
-export default new GoogleStrategy({
+const config = {
   clientID: GOOGLE_ID,
   clientSecret: GOOGLE_SECRET,
   callbackURL: '/login/google/return',
   passReqToCallback: true,
-}, async (req, accessToken, refreshToken, profile, done) => {
+}
+
+async function verify(req, accessToken, refreshToken, profile, done) {
   try {
     const user = await login(req, 'google', profile, { accessToken, refreshToken })
     done(null, user)
@@ -23,4 +25,6 @@ export default new GoogleStrategy({
   catch (err) {
     done(err)
   }
-})
+}
+
+export default new GoogleStrategy(config, verify)

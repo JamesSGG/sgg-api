@@ -1,0 +1,9 @@
+
+type UserLogin {
+  id: ID!
+  userId: ID!
+  provider: String
+  username: String
+  tokens: JSON,
+  profile: JSON,
+}
