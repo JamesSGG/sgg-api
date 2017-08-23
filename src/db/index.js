@@ -19,6 +19,7 @@ import type {
   LoginProvider,
   LoginProfile,
   LoginTokens,
+  GamePlayed,
 } from '../schema/flow'
 
 const { DATABASE_URL, DATABASE_DEBUG } = process.env
@@ -300,7 +301,7 @@ export async function getAllUsers(): Promise<Array<User>> {
     .from('users')
 }
 
-export async function getUserGamesPlayed(userId: string) {
+export async function getUserGamesPlayed(userId: string): Promise<Array<GamePlayed>> {
   return db
     .select('game_title', 'game_platform', 'gamer_tag')
     .from('user_games_played')

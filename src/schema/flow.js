@@ -30,7 +30,7 @@ export type GamePlayed = {
   gamerTag: ?string,
 }
 
- // User email object
+// User email object
 export type UserEmail = {
   // Email address
   email: string,

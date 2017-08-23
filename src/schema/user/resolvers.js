@@ -29,7 +29,7 @@ export default {
     async gamesPlayed(obj, args, context) {
       const { getUserGamesPlayed } = context.queries
 
-      const gamesPlayed = getUserGamesPlayed(obj.id)
+      const gamesPlayed = await getUserGamesPlayed(obj.id)
 
       return gamesPlayed.map(parseRecord)
     },
