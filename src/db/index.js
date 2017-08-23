@@ -4,14 +4,12 @@ import knex from 'knex'
 import faker from 'faker'
 import {
   compose,
-  complement,
   property,
   pick,
   head,
   mapKeys,
   camelCase,
   toNumber,
-  isEmpty,
 } from 'lodash/fp'
 
 import type { $Request } from 'express'
@@ -22,8 +20,6 @@ import type {
   LoginProfile,
   LoginTokens,
 } from '../schema/flow'
-
-const notEmpty = complement(isEmpty)
 
 const { DATABASE_URL, DATABASE_DEBUG } = process.env
 
@@ -44,69 +40,70 @@ export function parseRecord(record: *, fields?: Array<string>): Object {
   return mapKeys(camelCase, data)
 }
 
-export async function findUser(
-  req: $Request,
-  provider: LoginProvider,
-  profile: LoginProfile,
-): Promise<User> {
+type FindUserArgs = {
+  req?: $Request,
+  provider?: LoginProvider,
+  profile?: LoginProfile,
+}
+
+export async function findUserById(userId: string) {
+  return db
+    .table('users')
+    .where({ id: userId })
+    .first()
+}
+
+export async function findUserByLogin(loginProvider: LoginProvider, loginId: string) {
+  return db
+    .table('logins')
+    .innerJoin('users', 'users.id', 'logins.user_id')
+    .where({ 'logins.provider': loginProvider, 'logins.id': loginId })
+    .first('users.*')
+}
+
+export async function findUserByEmail(email: string) {
+  const emailData = [{
+    email,
+    verified: true,
+  }]
+
+  return db
+    .table('users')
+    .where('emails', '@>', JSON.stringify(emailData))
+    .first()
+}
+
+export async function findUser(args: FindUserArgs): Promise<?User> {
+  const { req, provider, profile } = args
   const {
     id,
     emails = [],
     photos = [],
-    displayName = '',
-  } = profile
+  } = profile || {}
 
-  const imageUrl = notEmpty(photos) ? head(photos).value : null
+  const {
+    value: email,
+    verified: isEmailVerified,
+  } = head(emails) || {}
+
+  const { value: imageUrl } = head(photos) || {}
 
   let user
 
-  if (req.user) {
-    user = await db
-      .table('users')
-      .where({ id: req.user.id })
-      .first()
+  if (req && req.user) {
+    user = await findUserById(req.user.id)
+  }
+
+  if (!user && provider && id) {
+    user = await findUserByLogin(provider, id)
+  }
+
+  if (!user && isEmailVerified) {
+    user = await findUserByEmail(email)
   }
 
   if (!user) {
-    user = await db
-      .table('logins')
-      .innerJoin('users', 'users.id', 'logins.user_id')
-      .where({ 'logins.provider': provider, 'logins.id': id })
-      .first('users.*')
-
-    if (!user && emails && emails.length && head(emails).verified === true) {
-      const emailData = [{
-        email: head(emails).value,
-        verified: true,
-      }]
-
-      user = await db
-        .table('users')
-        .where('emails', '@>', JSON.stringify(emailData))
-        .first()
-    }
-  }
-
-  if (!user) {
-    const emailData = emails.map((email) => ({
-      email: email.value,
-      verified: Boolean(email.verified),
-    }))
-
-    const users = await db
-      .table('users')
-      .insert({
-        display_name: displayName,
-        emails: JSON.stringify(emailData),
-        image_url: imageUrl,
-      })
-      .returning('*')
-
-    user = head(users)
-  }
-
-  if (!user) {
-    return {}
+    return null
   }
 
   // Fix tiny Facebook profile photo
@@ -130,6 +127,32 @@ export async function findUser(
     'image_url',
     'emails',
   ])
+}
+
+export async function createUser(profile: LoginProfile): Promise<User> {
+  const {
+    emails = [],
+    photos = [],
+    displayName = '',
+  } = profile || {}
+
+  const { value: imageUrl } = head(photos) || {}
+
+  const emailData = emails.map((email) => ({
+    email: email.value,
+    verified: Boolean(email.verified),
+  }))
+
+  const users = await db
+    .table('users')
+    .insert({
+      display_name: displayName,
+      emails: JSON.stringify(emailData),
+      image_url: imageUrl,
+    })
+    .returning('*')
+
+  return head(users)
 }
 
 export async function getUserLogins(userId?: string) {
@@ -193,7 +216,7 @@ export async function saveLogin(args: SaveLoginArgs) {
   }
 }
 
-export async function createUser() {
+export async function createFakeUser() {
   const record = {
     display_name: faker.name.findName(),
     image_url: faker.internet.avatar(),

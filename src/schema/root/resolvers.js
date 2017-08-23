@@ -77,9 +77,9 @@ export default {
 
     async createFriendForUser(obj, args, context) {
       const { id } = args
-      const { createUser, addFriendToUser } = context.queries
+      const { createFakeUser, addFriendToUser } = context.queries
 
-      const newUser = await createUser()
+      const newUser = await createFakeUser()
 
       addFriendToUser(id, newUser.id)
 
