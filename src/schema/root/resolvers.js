@@ -27,9 +27,9 @@ export default {
     },
 
     users(obj, args, context) {
-      const { allUsers } = context.queries
+      const { getAllUsers } = context.queries
 
-      return allUsers()
+      return getAllUsers()
     },
 
     currentUser(obj, args, context) {

@@ -293,12 +293,6 @@ export async function setUserOnlineStatus(userId: string, status: 'online' | 'of
   return { userId, status }
 }
 
-export async function userGamesPlayed(userId: string) {
-  return db
-    .select('game_title', 'game_platform', 'gamer_tag')
-    .from('user_games_played')
-    .where('user_id', userId)
-}
 
 export async function getAllUsers(): Promise<Array<User>> {
   return db
@@ -306,14 +300,21 @@ export async function getAllUsers(): Promise<Array<User>> {
     .from('users')
 }
 
-export async function friendsOfUser(userId: string): Promise<Array<User>> {
+export async function getUserGamesPlayed(userId: string) {
+  return db
+    .select('game_title', 'game_platform', 'gamer_tag')
+    .from('user_games_played')
+    .where('user_id', userId)
+}
+
+export async function getFriendsOfUser(userId: string): Promise<Array<User>> {
   return db
     .select('user_id', 'friend_id')
     .from('user_friends')
     .whereIn('user_id', userId)
 }
 
-export async function nonFriendsOfUser(userId: string): Promise<Array<User>> {
+export async function getNonFriendsOfUser(userId: string): Promise<Array<User>> {
   return db
     .select('user_id', 'friend_id')
     .from('user_friends')

@@ -27,13 +27,13 @@ export default {
       return obj.online_status
     },
     gamesPlayed(obj, args, context) {
-      const { userGamesPlayed } = context
+      const { getUserGamesPlayed } = context.queries
 
-      return userGamesPlayed(obj.id).map(parseRecord)
+      return getUserGamesPlayed(obj.id).map(parseRecord)
     },
     async friends(obj, args, context) {
       const { id } = obj
-      const { usersById, friendsOfUser } = context
+      const { usersById, friendsOfUser } = context.loaders
 
       if (!id) {
         return null
@@ -50,13 +50,13 @@ export default {
     },
     async nonFriends(obj, args, context) {
       const { id } = obj
-      const { nonFriendsOfUser } = context
+      const { getNonFriendsOfUser } = context.queries
 
       if (!id) {
         return null
       }
 
-      return nonFriendsOfUser(id)
+      return getNonFriendsOfUser(id)
     },
   },
 }
