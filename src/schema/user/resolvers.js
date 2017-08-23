@@ -26,10 +26,12 @@ export default {
     onlineStatus(obj) {
       return obj.online_status
     },
-    gamesPlayed(obj, args, context) {
+    async gamesPlayed(obj, args, context) {
       const { getUserGamesPlayed } = context.queries
 
-      return getUserGamesPlayed(obj.id).map(parseRecord)
+      const gamesPlayed = getUserGamesPlayed(obj.id)
+
+      return gamesPlayed.map(parseRecord)
     },
     async friends(obj, args, context) {
       const { id } = obj
