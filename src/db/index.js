@@ -32,6 +32,8 @@ const db = knex({
   debug: DATABASE_DEBUG === 'true',
 })
 
+export default db
+
 export const getQueryCount = compose(toNumber, property('count'))
 
 export function parseRecord(record: *, fields?: Array<string>): Object {
@@ -291,5 +293,38 @@ export async function setUserOnlineStatus(userId: string, status: 'online' | 'of
   return { userId, status }
 }
 
+export async function userGamesPlayed(userId: string) {
+  return db
+    .select('game_title', 'game_platform', 'gamer_tag')
+    .from('user_games_played')
+    .where('user_id', userId)
+}
 
-export default db
+export async function getAllUsers(): Promise<Array<User>> {
+  return db
+    .select('*')
+    .from('users')
+}
+
+export async function friendsOfUser(userId: string): Promise<Array<User>> {
+  return db
+    .select('user_id', 'friend_id')
+    .from('user_friends')
+    .whereIn('user_id', userId)
+}
+
+export async function nonFriendsOfUser(userId: string): Promise<Array<User>> {
+  return db
+    .select('user_id', 'friend_id')
+    .from('user_friends')
+    .where('user_id', userId)
+    .then((results) => {
+      const friendIds = results.map(property('friend_id'))
+      const excludedUserIds = friendIds.concat([userId])
+
+      return db
+        .select('*')
+        .from('users')
+        .whereNotIn('id', excludedUserIds)
+    })
+}

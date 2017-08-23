@@ -14,7 +14,6 @@ import DataLoader from 'dataloader'
 import {
   curry,
   property,
-  map,
 } from 'lodash/fp'
 
 import db from './db'
@@ -95,47 +94,6 @@ export const mapToValues = curry(_mapToValues)
 
 export default {
   create: () => ({
-    allUsers() {
-      const parseUsers = map(assignType('User'))
-
-      return db
-        .select('*')
-        .from('users')
-        .then(parseUsers)
-    },
-    friendsOfUser: new DataLoader(function resolve(keys) {
-      const parseUsers = mapToMany(keys, property('user_id'), 'UserFriend')
-
-      return db
-        .select('user_id', 'friend_id')
-        .from('user_friends')
-        .whereIn('user_id', keys)
-        .then(parseUsers)
-    }),
-    userGamesPlayed(userId: string) {
-      return db
-        .select('game_title', 'game_platform', 'gamer_tag')
-        .from('user_games_played')
-        .where('user_id', userId)
-    },
-    nonFriendsOfUser(userId: string) {
-      const parseUsers = map(assignType('User'))
-
-      return db
-        .select('user_id', 'friend_id')
-        .from('user_friends')
-        .where('user_id', userId)
-        .then((results) => {
-          const friendIds = results.map(property('friend_id'))
-          const excludedUserIds = friendIds.concat([userId])
-
-          return db
-            .select('*')
-            .from('users')
-            .whereNotIn('id', excludedUserIds)
-            .then(parseUsers)
-        })
-    },
     usersById: new DataLoader(function resolve(keys: Array<*>) {
       const parseUsers = mapTo(keys, property('id'), 'User')
 
@@ -145,13 +103,13 @@ export default {
         .whereIn('id', keys)
         .then(parseUsers)
     }),
-    usersByNotId: new DataLoader(function resolve(keys: Array<*>) {
-      const parseUsers = mapToMany(keys, property('id'), 'User')
+    friendsOfUser: new DataLoader(function resolve(keys) {
+      const parseUsers = mapToMany(keys, property('user_id'), 'UserFriend')
 
       return db
-        .select('*')
-        .from('users')
-        .whereNotIn('id', keys)
+        .select('user_id', 'friend_id')
+        .from('user_friends')
+        .whereIn('user_id', keys)
         .then(parseUsers)
     }),
   }),
