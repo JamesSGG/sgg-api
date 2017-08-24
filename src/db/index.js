@@ -308,7 +308,7 @@ export async function getAllUsers(): Promise<Array<User>> {
 
 export async function getUserGamesPlayed(userId: string): Promise<Array<GamePlayed>> {
   return db
-    .select('id', 'user_id', 'game_title', 'game_platform', 'gamer_tag')
+    .select('*')
     .from('user_games_played')
     .where('user_id', userId)
 }
@@ -337,17 +337,24 @@ export async function getNonFriendsOfUser(userId: string): Promise<Array<User>> 
 }
 
 export async function addUserGamePlayed(record: GamePlayedInput) {
-  await db
+  const newRecord = await db
     .table('user_games_played')
     .insert(parseDatabaseRecord(record))
+    .returning('*')
 
-  return record
+  console.log(newRecord)
+
+  return head(newRecord)
 }
 
 export async function editUserGamePlayed(input: GamePlayedInput) {
   const { id, ...record } = input
 
-  await db
+  const newRecord = await db
     .table('user_games_played')
-    .where()
+    .where('id', id)
+    .update(parseDatabaseRecord(record))
+    .returning('*')
+
+  return head(newRecord)
 }

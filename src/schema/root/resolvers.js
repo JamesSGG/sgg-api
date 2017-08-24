@@ -92,6 +92,24 @@ export default {
 
       return newUser
     },
+
+    async addGamePlayed(obj, args, context) {
+      const { input } = args
+      const { parseRecord, addUserGamePlayed } = context.queries
+
+      const newGame = await addUserGamePlayed(input)
+
+      return parseRecord(newGame)
+    },
+
+    async editGamePlayed(obj, args, context) {
+      const { input } = args
+      const { parseRecord, editUserGamePlayed } = context.queries
+
+      const newGame = await editUserGamePlayed(input)
+
+      return parseRecord(newGame)
+    },
   },
   Subscription: {
     userOnlineStatusChanged: {
