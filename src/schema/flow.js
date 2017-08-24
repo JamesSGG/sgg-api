@@ -30,6 +30,14 @@ export type GamePlayed = {
   gamerTag: ?string,
 }
 
+// Input when adding or editing a played game
+export type GamePlayedInput = {
+  id?: string,
+  userId: string,
+  gameTitle: string,
+  gamerTag?: string,
+}
+
 // User email object
 export type UserEmail = {
   // Email address

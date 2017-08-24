@@ -64,8 +64,11 @@ type Mutation {
   # Randomly generate a new user and add to specified user's friends list
   createFriendForUser(id: ID!): User
 
-  # Adds a new entry for the "games played" section on the user profile page
+  # Adds a game that the user has played
   addGamePlayed(input: GamePlayedInput!): GamePlayed
+
+  # Edits an existing game that the user has played
+  editGamePlayed(input: GamePlayedInput!): GamePlayed
 }
 
 type Subscription {

@@ -1,6 +1,12 @@
 
 # A game that has been played by a user
 type GamePlayed {
+  # Record ID
+  id: ID!
+
+  # The ID of the user that created the record
+  userId: ID!
+
   # The title of the game
   gameTitle: String
 

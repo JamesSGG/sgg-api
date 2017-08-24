@@ -9,6 +9,7 @@ import {
   head,
   mapKeys,
   camelCase,
+  snakeCase,
   toNumber,
 } from 'lodash/fp'
 
@@ -20,6 +21,7 @@ import type {
   LoginProfile,
   LoginTokens,
   GamePlayed,
+  GamePlayedInput,
 } from '../schema/flow'
 
 const { DATABASE_URL, DATABASE_DEBUG } = process.env
@@ -41,6 +43,12 @@ export function parseRecord(record: *, fields?: Array<string>): Object {
   const data = fields ? pick(fields, record) : record
 
   return mapKeys(camelCase, data)
+}
+
+export function parseDatabaseRecord(record: *, fields?: Array<string>): Object {
+  const data = fields ? pick(fields, record) : record
+
+  return mapKeys(snakeCase, data)
 }
 
 type FindUserArgs = {
@@ -258,16 +266,13 @@ export async function addFriendToUser(userId: string, friendId: string) {
     return { userId, friendId }
   }
 
-  const record = {
-    user_id: userId,
-    friend_id: friendId,
-  }
+  const record = { userId, friendId }
 
   await db
     .table('user_friends')
-    .insert(record)
+    .insert(parseDatabaseRecord(record))
 
-  return { userId, friendId }
+  return record
 }
 
 export async function setUserOnlineStatus(userId: string, status: 'online' | 'offline') {
@@ -303,7 +308,7 @@ export async function getAllUsers(): Promise<Array<User>> {
 
 export async function getUserGamesPlayed(userId: string): Promise<Array<GamePlayed>> {
   return db
-    .select('game_title', 'game_platform', 'gamer_tag')
+    .select('id', 'user_id', 'game_title', 'game_platform', 'gamer_tag')
     .from('user_games_played')
     .where('user_id', userId)
 }
@@ -329,4 +334,20 @@ export async function getNonFriendsOfUser(userId: string): Promise<Array<User>> 
         .from('users')
         .whereNotIn('id', excludedUserIds)
     })
+}
+
+export async function addUserGamePlayed(record: GamePlayedInput) {
+  await db
+    .table('user_games_played')
+    .insert(parseDatabaseRecord(record))
+
+  return record
+}
+
+export async function editUserGamePlayed(input: GamePlayedInput) {
+  const { id, ...record } = input
+
+  await db
+    .table('user_games_played')
+    .where()
 }
