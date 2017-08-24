@@ -39,7 +39,16 @@ export default async function login(
 
   // See if the user has any Facebook friends that have also joined SGG;
   // if so, add them to the user's friends list
-  const { data: friendsList = [] } = JSON.parse(profile._json).friends
+  let friendsList = []
+
+  try {
+    friendsList = JSON.parse(profile._json).friends.data
+  }
+  catch (error) {
+    console.log('Error parsing profile:')
+    console.log(profile._json)
+  }
+
   const findFriend = (friend) => findUserByLogin(provider, friend.id)
   const friends = await Promise.all(friendsList.map(findFriend))
 

@@ -1,5 +1,5 @@
 
-import { property, isEmpty } from 'lodash/fp'
+import { unary, property, isEmpty } from 'lodash/fp'
 
 export default {
   User: {
@@ -29,7 +29,7 @@ export default {
 
       const gamesPlayed = await getUserGamesPlayed(obj.id)
 
-      return gamesPlayed.map((game) => parseRecord(game))
+      return gamesPlayed.map(unary(parseRecord))
     },
     async friends(obj, args, context) {
       const { id } = obj
