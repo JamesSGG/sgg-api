@@ -5,7 +5,7 @@ import faker from 'faker'
 import {
   compose,
   property,
-  pick,
+  map,
   head,
   mapKeys,
   camelCase,
@@ -37,25 +37,10 @@ const db = knex({
 
 export default db
 
+export const camelKeys = mapKeys(camelCase)
+export const snakeKeys = mapKeys(snakeCase)
+
 export const getQueryCount = compose(toNumber, property('count'))
-
-export function parseRecord(record: *, fields?: Array<string>): Object {
-  const data = fields ? pick(fields, record) : record
-
-  return mapKeys(camelCase, data)
-}
-
-export function parseDatabaseRecord(record: *, fields?: Array<string>): Object {
-  const data = fields ? pick(fields, record) : record
-
-  return mapKeys(snakeCase, data)
-}
-
-type FindUserArgs = {
-  req?: $Request,
-  provider?: LoginProvider,
-  profile?: LoginProfile,
-}
 
 export async function findUserById(userId: string) {
   return db
@@ -82,6 +67,12 @@ export async function findUserByEmail(email: string) {
     .table('users')
     .where('emails', '@>', JSON.stringify(emailData))
     .first()
+}
+
+type FindUserArgs = {
+  req?: $Request,
+  provider?: LoginProvider,
+  profile?: LoginProfile,
 }
 
 export async function findUser(args: FindUserArgs): Promise<?User> {
@@ -132,12 +123,7 @@ export async function findUser(args: FindUserArgs): Promise<?User> {
       })
   }
 
-  return parseRecord(user, [
-    'id',
-    'display_name',
-    'image_url',
-    'emails',
-  ])
+  return camelKeys(user)
 }
 
 export async function createUser(profile: LoginProfile): Promise<User> {
@@ -154,16 +140,17 @@ export async function createUser(profile: LoginProfile): Promise<User> {
     verified: Boolean(email.verified),
   }))
 
-  const users = await db
-    .table('users')
-    .insert({
-      display_name: displayName,
-      emails: JSON.stringify(emailData),
-      image_url: imageUrl,
-    })
-    .returning('*')
+  const dbRecord = snakeKeys({
+    displayName,
+    imageUrl,
+    emails: JSON.stringify(emailData),
+  })
 
-  return head(users)
+  return db
+    .table('users')
+    .insert(dbRecord)
+    .returning('*')
+    .first()
 }
 
 export async function getUserLogins(userId?: string) {
@@ -238,12 +225,11 @@ export async function createFakeUser() {
     }]),
   }
 
-  const newUserResults = await db
+  return db
     .table('users')
     .insert(record)
     .returning('*')
-
-  return head(newUserResults)
+    .first()
 }
 
 export async function addFriendToUser(userId: string, friendId: string) {
@@ -266,13 +252,12 @@ export async function addFriendToUser(userId: string, friendId: string) {
     return { userId, friendId }
   }
 
-  const record = { userId, friendId }
+  const dbRecord = snakeKeys({ userId, friendId })
 
-  await db
+  return db
     .table('user_friends')
-    .insert(parseDatabaseRecord(record))
-
-  return record
+    .insert(dbRecord)
+    .first()
 }
 
 export async function setUserOnlineStatus(userId: string, status: 'online' | 'offline') {
@@ -322,11 +307,11 @@ export async function getFriendsOfUser(userId: string): Promise<Array<User>> {
 
 export async function getNonFriendsOfUser(userId: string): Promise<Array<User>> {
   return db
-    .select('user_id', 'friend_id')
+    .select('friend_id')
     .from('user_friends')
     .where('user_id', userId)
-    .then((results) => {
-      const friendIds = results.map(property('friend_id'))
+    .then(map(property('friend_id')))
+    .then((friendIds) => {
       const excludedUserIds = friendIds.concat([userId])
 
       return db
@@ -336,25 +321,24 @@ export async function getNonFriendsOfUser(userId: string): Promise<Array<User>> 
     })
 }
 
-export async function addUserGamePlayed(record: GamePlayedInput) {
-  const newRecord = await db
+export async function addUserGamePlayed(input: GamePlayedInput) {
+  const record = snakeKeys(input)
+
+  return db
     .table('user_games_played')
-    .insert(parseDatabaseRecord(record))
+    .insert(record)
     .returning('*')
-
-  console.log(newRecord)
-
-  return head(newRecord)
+    .first()
 }
 
 export async function editUserGamePlayed(input: GamePlayedInput) {
-  const { id, ...record } = input
+  const { id, ...fields } = input
+  const record = snakeKeys(fields)
 
-  const newRecord = await db
+  return db
     .table('user_games_played')
     .where('id', id)
-    .update(parseDatabaseRecord(record))
+    .update(record)
     .returning('*')
-
-  return head(newRecord)
+    .first()
 }

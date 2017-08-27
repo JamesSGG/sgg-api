@@ -95,20 +95,20 @@ export default {
 
     async addGamePlayed(obj, args, context) {
       const { input } = args
-      const { parseRecord, addUserGamePlayed } = context.queries
+      const { camelKeys, addUserGamePlayed } = context.queries
 
       const newGame = await addUserGamePlayed(input)
 
-      return parseRecord(newGame)
+      return camelKeys(newGame)
     },
 
     async editGamePlayed(obj, args, context) {
       const { input } = args
-      const { parseRecord, editUserGamePlayed } = context.queries
+      const { camelKeys, editUserGamePlayed } = context.queries
 
       const newGame = await editUserGamePlayed(input)
 
-      return parseRecord(newGame)
+      return camelKeys(newGame)
     },
   },
   Subscription: {
