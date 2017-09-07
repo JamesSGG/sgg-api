@@ -21,7 +21,8 @@ import type {
   LoginProfile,
   LoginTokens,
   GamePlayed,
-  GamePlayedInput,
+  AddGamePlayedInput,
+  EditGamePlayedInput,
 } from '../schema/flow'
 
 const { DATABASE_URL, DATABASE_DEBUG } = process.env
@@ -291,6 +292,12 @@ export async function getAllUsers(): Promise<Array<User>> {
     .from('users')
 }
 
+export async function getAllGamesPlayed(): Promise<Array<GamePlayed>> {
+  return db
+    .select('*')
+    .from('user_games_played')
+}
+
 export async function getUserGamesPlayed(userId: string): Promise<Array<GamePlayed>> {
   return db
     .select('*')
@@ -321,7 +328,7 @@ export async function getNonFriendsOfUser(userId: string): Promise<Array<User>> 
     })
 }
 
-export async function addUserGamePlayed(input: GamePlayedInput) {
+export async function addUserGamePlayed(input: AddGamePlayedInput) {
   const record = snakeKeys(input)
 
   return db
@@ -331,7 +338,7 @@ export async function addUserGamePlayed(input: GamePlayedInput) {
     .first()
 }
 
-export async function editUserGamePlayed(input: GamePlayedInput) {
+export async function editUserGamePlayed(input: EditGamePlayedInput) {
   const { id, ...fields } = input
   const record = snakeKeys(fields)
 
@@ -340,5 +347,12 @@ export async function editUserGamePlayed(input: GamePlayedInput) {
     .where('id', id)
     .update(record)
     .returning('*')
-    .first()
+    .then(head)
+}
+
+export async function deleteUserGamePlayed(id: string) {
+  return db
+    .table('user_games_played')
+    .where('id', id)
+    .del()
 }

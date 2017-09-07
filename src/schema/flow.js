@@ -31,10 +31,18 @@ export type GamePlayed = {
 }
 
 // Input when adding or editing a played game
-export type GamePlayedInput = {
-  id?: string,
+export type AddGamePlayedInput = {
   userId: string,
   gameTitle: string,
+  gamePlatform: string,
+  gamerTag?: string,
+}
+
+export type EditGamePlayedInput = {
+  id: string,
+  userId?: string,
+  gameTitle?: string,
+  gamePlatform?: string,
   gamerTag?: string,
 }
 

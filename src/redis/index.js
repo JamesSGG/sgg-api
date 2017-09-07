@@ -1,6 +1,5 @@
 import redis from 'redis'
 import bluebird from 'bluebird'
-import { RedisPubSub } from 'graphql-redis-subscriptions'
 
 bluebird.promisifyAll(redis.RedisClient.prototype)
 bluebird.promisifyAll(redis.Multi.prototype)
@@ -13,10 +12,6 @@ const client = redis.createClient({
 
 client.on('error', console.log)
 
-export const pubsub = new RedisPubSub({
-  connection: {
-    url: REDIS_URL,
-  },
-})
-
 export default client
+
+export * from './subscriptions'

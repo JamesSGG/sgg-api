@@ -3,10 +3,11 @@ import GraphQLJSON from 'graphql-type-json'
 import { withFilter } from 'graphql-subscriptions'
 import { isEmpty } from 'lodash/fp'
 
-import { pubsub } from '../../redis'
-
-const USER_ONLINE_STATUS_CHANGED = 'USER_ONLINE_STATUS_CHANGED'
-const USER_FRIEND_ADDED = 'USER_FRIEND_ADDED'
+import {
+  pubsub,
+  USER_FRIEND_ADDED,
+  USER_ONLINE_STATUS_CHANGED,
+} from '../../redis'
 
 // function filtered(asyncIterator, filter) {
 //   return withFilter(() => asyncIterator, filter)
@@ -46,6 +47,14 @@ export default {
       const { getUserLogins } = context.queries
 
       return getUserLogins()
+    },
+
+    async gamesPlayed(obj, args, context) {
+      const { camelKeys, getAllGamesPlayed } = context.queries
+
+      const gamesPlayed = await getAllGamesPlayed()
+
+      return gamesPlayed.map(camelKeys)
     },
   },
   Mutation: {
@@ -106,9 +115,18 @@ export default {
       const { input } = args
       const { camelKeys, editUserGamePlayed } = context.queries
 
-      const newGame = await editUserGamePlayed(input)
+      const updatedGame = await editUserGamePlayed(input)
 
-      return camelKeys(newGame)
+      return camelKeys(updatedGame)
+    },
+
+    async deleteGamePlayed(obj, args, context) {
+      const { id } = args
+      const { deleteUserGamePlayed } = context.queries
+
+      await deleteUserGamePlayed(id)
+
+      return id
     },
   },
   Subscription: {

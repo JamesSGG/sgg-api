@@ -16,12 +16,13 @@ const {
 } = process.env
 
 const hostName = HOSTNAME || '0.0.0.0'
-const port = PORT || 8880
+const port = Number(PORT) || 8880
+const maxConnections = 511
 
 const ws = createServer(app)
 
 // Launch Node.js server
-const server = ws.listen(port, hostName, () => {
+const server = ws.listen(port, hostName, maxConnections, () => {
   console.log(`API server is listening on http://${hostName}:${port}`)
 
   SubscriptionServer.create(
