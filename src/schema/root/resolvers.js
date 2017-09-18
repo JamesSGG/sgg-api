@@ -1,12 +1,13 @@
 
 import GraphQLJSON from 'graphql-type-json'
+import { GraphQLDate, GraphQLTime, GraphQLDateTime } from 'graphql-iso-date'
 import { withFilter } from 'graphql-subscriptions'
 import { isEmpty } from 'lodash/fp'
 
 import {
   pubsub,
   USER_FRIEND_ADDED,
-  USER_ONLINE_STATUS_CHANGED,
+  USER_LAST_SEEN_AT_CHANGED,
 } from '../../redis'
 
 // function filtered(asyncIterator, filter) {
@@ -15,9 +16,12 @@ import {
 
 export default {
   JSON: GraphQLJSON,
+  Date: GraphQLDate,
+  Time: GraphQLTime,
+  DateTime: GraphQLDateTime,
   Query: {
     user(obj, args, context) {
-      const { usersById } = context.loaders
+      const { loaders: { usersById } } = context
       const { id } = args
 
       if (!id) {
@@ -28,13 +32,13 @@ export default {
     },
 
     users(obj, args, context) {
-      const { getAllUsers } = context.queries
+      const { queries: { getAllUsers } } = context
 
       return getAllUsers()
     },
 
     currentUser(obj, args, context) {
-      const { user, usersById } = context.loaders
+      const { loaders: { user, usersById } } = context
 
       if (!user) {
         return null
@@ -44,13 +48,13 @@ export default {
     },
 
     logins(obj, args, context) {
-      const { getUserLogins } = context.queries
+      const { queries: { getUserLogins } } = context
 
       return getUserLogins()
     },
 
     async gamesPlayed(obj, args, context) {
-      const { camelKeys, getAllGamesPlayed } = context.queries
+      const { queries: { camelKeys, getAllGamesPlayed } } = context
 
       const gamesPlayed = await getAllGamesPlayed()
 
@@ -58,22 +62,20 @@ export default {
     },
   },
   Mutation: {
-    setUserOnlineStatus(obj, args, context) {
-      const { input: { userId, status } } = args
-      const { setUserOnlineStatus } = context.queries
+    async bumpUserLastSeenAt(obj, args, context) {
+      const { id } = args
+      const { queries: { bumpUserLastSeenAt } } = context
 
-      setUserOnlineStatus(userId, status)
+      const result = await bumpUserLastSeenAt(id)
 
-      pubsub.publish(USER_ONLINE_STATUS_CHANGED, {
-        userOnlineStatusChanged: { userId, status },
+      pubsub.publish(USER_LAST_SEEN_AT_CHANGED, {
+        userLastSeenAtChanged: { userId: id, result },
       })
-
-      return { userId, status }
     },
 
     addFriendToUser(obj, args, context) {
       const { input: { userId, friendId } } = args
-      const { addFriendToUser } = context.queries
+      const { queries: { addFriendToUser } } = context
 
       addFriendToUser(userId, friendId)
 
@@ -86,7 +88,7 @@ export default {
 
     async createFriendForUser(obj, args, context) {
       const { id } = args
-      const { createFakeUser, addFriendToUser } = context.queries
+      const { queries: { createFakeUser, addFriendToUser } } = context
 
       const newUser = await createFakeUser()
 
@@ -104,7 +106,7 @@ export default {
 
     async addGamePlayed(obj, args, context) {
       const { input } = args
-      const { camelKeys, addUserGamePlayed } = context.queries
+      const { queries: { camelKeys, addUserGamePlayed } } = context
 
       const newGame = await addUserGamePlayed(input)
 
@@ -113,7 +115,7 @@ export default {
 
     async editGamePlayed(obj, args, context) {
       const { input } = args
-      const { camelKeys, editUserGamePlayed } = context.queries
+      const { queries: { camelKeys, editUserGamePlayed } } = context
 
       const updatedGame = await editUserGamePlayed(input)
 
@@ -122,7 +124,7 @@ export default {
 
     async deleteGamePlayed(obj, args, context) {
       const { id } = args
-      const { deleteUserGamePlayed } = context.queries
+      const { queries: { deleteUserGamePlayed } } = context
 
       await deleteUserGamePlayed(id)
 
@@ -130,9 +132,9 @@ export default {
     },
   },
   Subscription: {
-    userOnlineStatusChanged: {
+    userLastSeenAtChanged: {
       subscribe: withFilter(
-        () => pubsub.asyncIterator(USER_ONLINE_STATUS_CHANGED),
+        () => pubsub.asyncIterator(USER_LAST_SEEN_AT_CHANGED),
         (payload, variables) => {
           const { userIds } = variables
 
@@ -140,7 +142,7 @@ export default {
             return true
           }
 
-          const { userFriendAdded: { userId } } = payload
+          const { userLastSeenAtChanged: { userId } } = payload
 
           return userIds.includes(userId)
         },

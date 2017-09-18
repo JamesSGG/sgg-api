@@ -1,15 +1,8 @@
 
 scalar JSON
-
-enum UserStatus {
-  online
-  offline
-}
-
-input UserStatusInput {
-  userId: ID!
-  status: UserStatus
-}
+scalar Date
+scalar Time
+scalar DateTime
 
 input UserInput {
   userId: ID
@@ -39,9 +32,9 @@ input EditGamePlayedInput {
   gamerTag: String
 }
 
-type UserStatusInfo {
+type UserLastSeenAtResult {
   userId: ID!
-  status: UserStatus
+  lastSeenAt: DateTime
 }
 
 type AddFriendResult {
@@ -67,8 +60,9 @@ type Query {
 }
 
 type Mutation {
-  # Sets a user's online / offline status
-  setUserOnlineStatus(input: UserStatusInput!): UserStatusInfo
+  # Sets the "last_seen_at" timestamp to "now" for the specified user, which is
+  # then used to determine whether the user is "online" or "offline".
+  bumpUserLastSeenAt(id: ID!): UserLastSeenAtResult
 
   # Adds a friend to a user
   addFriendToUser(input: AddFriendInput!): AddFriendResult
@@ -87,6 +81,6 @@ type Mutation {
 }
 
 type Subscription {
-  # Is triggered when a user's online / offline status changes
-  userOnlineStatusChanged(input: UserListInput): UserStatusInfo
+  # Is triggered when a user's "last_seen_at" timestamp is updated
+  userLastSeenAtChanged: UserLastSeenAtResult
 }

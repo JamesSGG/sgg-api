@@ -4,6 +4,12 @@ type GamePlayed {
   # Record ID
   id: ID!
 
+  # Timestamp of when the record was created
+  createdAt: DateTime
+
+  # Timestamp of when the record was last updated
+  updatedAt: DateTime
+
   # The ID of the user that created the record
   userId: ID!
 
@@ -22,6 +28,15 @@ type User {
   # User ID
   id: ID!
 
+  # Timestamp of when the user was created
+  createdAt: DateTime
+
+  # Timestamp of when the user was last updated
+  updatedAt: DateTime
+
+  # Timestamp of when the user was last active on the site
+  lastSeenAt: DateTime
+
   # Display name
   displayName: String
 
@@ -30,9 +45,6 @@ type User {
 
   # Emails
   emails: [Email]
-
-  # Online status
-  onlineStatus: UserStatus
 
   # Games played
   gamesPlayed: [GamePlayed]

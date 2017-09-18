@@ -6,6 +6,15 @@ export default {
     id(obj) {
       return obj.id
     },
+    createdAt(obj) {
+      return obj.created_at
+    },
+    updatedAt(obj) {
+      return obj.updated_at
+    },
+    lastSeenAt(obj) {
+      return obj.last_seen_at
+    },
     displayName(obj) {
       return obj.display_name
     },
@@ -21,11 +30,8 @@ export default {
 
       return null
     },
-    onlineStatus(obj) {
-      return obj.online_status
-    },
     async gamesPlayed(obj, args, context) {
-      const { camelKeys, getUserGamesPlayed } = context.queries
+      const { queries: { camelKeys, getUserGamesPlayed } } = context
 
       const gamesPlayed = await getUserGamesPlayed(obj.id)
 
@@ -33,7 +39,7 @@ export default {
     },
     async friends(obj, args, context) {
       const { id } = obj
-      const { usersById, friendsOfUser } = context.loaders
+      const { loaders: { usersById, friendsOfUser } } = context
 
       if (!id) {
         return null
@@ -50,7 +56,7 @@ export default {
     },
     async nonFriends(obj, args, context) {
       const { id } = obj
-      const { getNonFriendsOfUser } = context.queries
+      const { queries: { getNonFriendsOfUser } } = context
 
       if (!id) {
         return null

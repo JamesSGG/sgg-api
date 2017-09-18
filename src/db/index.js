@@ -261,31 +261,6 @@ export async function addFriendToUser(userId: string, friendId: string) {
     .first()
 }
 
-export async function setUserOnlineStatus(userId: string, status: 'online' | 'offline') {
-  const validStatusValues = [
-    'online',
-    'offline',
-  ]
-
-  if (!userId || !status) {
-    console.log('The `userId` and `status` arguments are both required')
-    return null
-  }
-
-  if (!validStatusValues.includes(status)) {
-    console.log('Expected `status` to be either "online" or "offline", got: %s', status)
-    return null
-  }
-
-  await db
-    .table('users')
-    .where('id', userId)
-    .update('online_status', status)
-
-  return { userId, status }
-}
-
-
 export async function getAllUsers(): Promise<Array<User>> {
   return db
     .select('*')
@@ -326,6 +301,15 @@ export async function getNonFriendsOfUser(userId: string): Promise<Array<User>> 
         .from('users')
         .whereNotIn('id', excludedUserIds)
     })
+}
+
+export async function bumpUserLastSeenAt(userId: string): Promise<String> {
+  return db
+    .table('users')
+    .where('id', userId)
+    .update('last_seen_at', db.fn.now())
+    .returning('last_seen_at')
+    .then(head)
 }
 
 export async function addUserGamePlayed(input: AddGamePlayedInput) {

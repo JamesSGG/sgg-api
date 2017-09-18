@@ -1,4 +1,8 @@
 
+export type Date = string
+export type Time = string
+export type DateTime = string
+
 export type LoginProvider =
   | 'facebook'
   | 'twitter'
@@ -55,13 +59,19 @@ export type UserEmail = {
   verified: boolean,
 }
 
-// User online / offline status
-export type UserStatus = 'online' | 'offline'
-
 // User record
 export type User = {
   // User ID
   id: string,
+
+  //  Timestamp of when the user was created
+  createdAt: DateTime,
+
+  //  Timestamp of when the user was last updated
+  updatedAt: DateTime,
+
+  // Timestamp of when the user was last active on the site
+  lastSeenAt: DateTime,
 
   // Display name
   displayName: ?string,
@@ -71,9 +81,6 @@ export type User = {
 
   // Emails
   emails: ?Array<UserEmail>,
-
-  // Online status
-  onlineStatus: ?UserStatus,
 
   // Games played
   gamesPlayed: ?Array<GamePlayed>,

@@ -3,7 +3,7 @@
 import { createServer } from 'http'
 import { execute, subscribe } from 'graphql'
 import { SubscriptionServer } from 'subscriptions-transport-ws'
-import { partial } from 'lodash/fp'
+import { partial, ary, noop } from 'lodash/fp'
 
 import app from './app'
 import db from './db'
@@ -30,11 +30,6 @@ const server = ws.listen(port, hostName, maxConnections, () => {
       schema,
       execute,
       subscribe,
-      onConnect(connectionParams) {
-        const { userId = null } = connectionParams
-
-        return Promise.resolve({ currentUserId: userId })
-      },
     },
     {
       server: ws,
@@ -54,17 +49,15 @@ function handleExit(options, error) {
     const lastIndex = actions.length - 1
 
     actions.forEach((close, i) => {
+      // Don't allow any arguments to `process.exit()`
+      // (the first / only argument is the exit code)
+      const maybeExit = ary(0, i === lastIndex ? process.exit : noop)
+
       try {
-        close(() => {
-          if (i === lastIndex) {
-            process.exit()
-          }
-        })
+        close(maybeExit)
       }
-      catch (_error) {
-        if (i === lastIndex) {
-          process.exit()
-        }
+      catch (_) {
+        maybeExit()
       }
     })
   }
