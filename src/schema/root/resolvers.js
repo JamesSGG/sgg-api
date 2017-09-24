@@ -1,6 +1,7 @@
 
 import GraphQLJSON from 'graphql-type-json'
 import { GraphQLDate, GraphQLTime, GraphQLDateTime } from 'graphql-iso-date'
+import { GraphQLUrl, GraphQLAbsoluteUrl, GraphQLRelativeUrl } from 'graphql-url'
 import { withFilter } from 'graphql-subscriptions'
 import { isEmpty } from 'lodash/fp'
 
@@ -19,6 +20,9 @@ export default {
   Date: GraphQLDate,
   Time: GraphQLTime,
   DateTime: GraphQLDateTime,
+  URL: GraphQLUrl,
+  AbsoluteURL: GraphQLAbsoluteUrl,
+  RelativeURL: GraphQLRelativeUrl,
   Query: {
     user(obj, args, context) {
       const { loaders: { usersById } } = context
@@ -71,19 +75,23 @@ export default {
       pubsub.publish(USER_LAST_SEEN_AT_CHANGED, {
         userLastSeenAtChanged: { userId: id, result },
       })
+
+      return result
     },
 
-    addFriendToUser(obj, args, context) {
+    async addFriendToUser(obj, args, context) {
       const { input: { userId, friendId } } = args
       const { queries: { addFriendToUser } } = context
 
-      addFriendToUser(userId, friendId)
+      const result = await addFriendToUser(userId, friendId)
+
+      console.log(result)
 
       pubsub.publish(USER_FRIEND_ADDED, {
-        userFriendAdded: { userId, friendId },
+        userFriendAdded: result,
       })
 
-      return { userId, friendId }
+      return result
     },
 
     async createFriendForUser(obj, args, context) {

@@ -3,6 +3,9 @@ scalar JSON
 scalar Date
 scalar Time
 scalar DateTime
+scalar URL
+scalar AbsoluteURL
+scalar RelativeURL
 
 input UserInput {
   userId: ID

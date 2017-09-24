@@ -1,7 +1,13 @@
+// @flow
 
+export type ID = string
+export type JSON = string
 export type Date = string
 export type Time = string
 export type DateTime = string
+export type URL = string
+export type AbsoluteURL = string
+export type RelativeURL = string
 
 export type LoginProvider =
   | 'facebook'
@@ -9,7 +15,7 @@ export type LoginProvider =
   | 'google'
 
 export type LoginProfile = {
-  id: string,
+  id: ID,
   emails: Array<{| value: string, verified: boolean |}>,
   photos: Array<{| value: string |}>,
   displayName: string,
@@ -36,18 +42,23 @@ export type GamePlayed = {
 
 // Input when adding or editing a played game
 export type AddGamePlayedInput = {
-  userId: string,
+  userId: ID,
   gameTitle: string,
   gamePlatform: string,
   gamerTag?: string,
 }
 
 export type EditGamePlayedInput = {
-  id: string,
-  userId?: string,
+  id: ID,
+  userId?: ID,
   gameTitle?: string,
   gamePlatform?: string,
   gamerTag?: string,
+}
+
+export type AddFriendResult = {
+  userId: ID,
+  friendId: ID,
 }
 
 // User email object
@@ -62,12 +73,12 @@ export type UserEmail = {
 // User record
 export type User = {
   // User ID
-  id: string,
+  id: ID,
 
-  //  Timestamp of when the user was created
+  // Timestamp of when the user was created
   createdAt: DateTime,
 
-  //  Timestamp of when the user was last updated
+  // Timestamp of when the user was last updated
   updatedAt: DateTime,
 
   // Timestamp of when the user was last active on the site

@@ -23,6 +23,7 @@ import type {
   GamePlayed,
   AddGamePlayedInput,
   EditGamePlayedInput,
+  AddFriendToUserResult,
 } from '../schema/flow'
 
 const { DATABASE_URL, DATABASE_DEBUG } = process.env
@@ -151,7 +152,7 @@ export async function createUser(profile: LoginProfile): Promise<User> {
     .table('users')
     .insert(dbRecord)
     .returning('*')
-    .first()
+    .then(head)
 }
 
 export async function getUserLogins(userId?: string) {
@@ -219,7 +220,6 @@ export async function createFakeUser() {
   const record = {
     display_name: faker.name.findName(),
     image_url: faker.internet.avatar(),
-    online_status: 'offline',
     emails: JSON.stringify([{
       email: faker.internet.email().toLowerCase(),
       verified: false,
@@ -230,10 +230,13 @@ export async function createFakeUser() {
     .table('users')
     .insert(record)
     .returning('*')
-    .first()
+    .then(head)
 }
 
-export async function addFriendToUser(userId: string, friendId: string) {
+export async function addFriendToUser(
+  userId: string,
+  friendId: string,
+): Promise<AddFriendToUserResult> {
   if (!userId || !friendId) {
     return null
   }
@@ -243,7 +246,7 @@ export async function addFriendToUser(userId: string, friendId: string) {
     .count('user_id')
     .where('user_id', userId)
     .andWhere('friend_id', friendId)
-    .first()
+    .then(head)
 
   const hasFriend = getQueryCount(hasFriendResult) > 0
 
@@ -258,7 +261,8 @@ export async function addFriendToUser(userId: string, friendId: string) {
   return db
     .table('user_friends')
     .insert(dbRecord)
-    .first()
+    .returning('*')
+    .then(head)
 }
 
 export async function getAllUsers(): Promise<Array<User>> {
@@ -319,7 +323,7 @@ export async function addUserGamePlayed(input: AddGamePlayedInput) {
     .table('user_games_played')
     .insert(record)
     .returning('*')
-    .first()
+    .then(head)
 }
 
 export async function editUserGamePlayed(input: EditGamePlayedInput) {

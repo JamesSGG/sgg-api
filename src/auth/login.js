@@ -1,6 +1,6 @@
 // @flow
 
-import { head } from 'lodash/fp'
+import { head, isEmpty } from 'lodash/fp'
 
 import type { $Request } from 'express'
 
@@ -28,6 +28,8 @@ export default async function login(
   profile: LoginProfile,
   tokens: LoginTokens,
 ) {
+  const { _json: profileRaw } = profile
+
   // Get logged-in user
   const existingUser = await findUser({ req, provider, profile })
 
@@ -37,23 +39,29 @@ export default async function login(
   // Save the user login to the DB for future reference
   await saveLogin({ provider, profile, tokens, user })
 
-  // See if the user has any Facebook friends that have also joined SGG;
-  // if so, add them to the user's friends list
-  const { data: friendsList } = profile._json.friends
+  // See if the user has any Facebook friends that have also joined SGG
+  const { data: friendsList } = profileRaw.friends
 
-  const findFriend = (friend) => findUserByLogin(provider, friend.id)
-  const friends = await Promise.all(friendsList.map(findFriend))
+  if (friendsList && !isEmpty(friendsList)) {
+    const findFriend = (friend) => findUserByLogin(provider, friend.id)
+    const friends = await Promise.all(friendsList.map(findFriend))
 
-  friends.forEach((friend) => {
-    addFriendToUser(user.id, friend.id)
-  })
+    // If so, add them to the user's friends list
+    if (friends && !isEmpty(friends)) {
+      friends.forEach((friend) => {
+        addFriendToUser(user.id, friend.id)
+      })
+    }
+  }
 
   // Add user to MailChimp list if not already subscribed.
   const listId = '908a975f19'
   const { emails } = user
   const { email } = head(emails)
 
-  addUserToList(listId, email)
+  if (email) {
+    addUserToList(listId, email)
+  }
 
   return user
 }
