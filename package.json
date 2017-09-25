@@ -47,11 +47,11 @@
     "express-flash": "^0.0.2",
     "express-session": "^1.15.4",
     "faker": "^4.1.0",
-    "graphql": "^0.11.3",
+    "graphql": "^0.10.5",
     "graphql-iso-date": "^3.3.0",
     "graphql-redis-subscriptions": "^1.2.0",
     "graphql-server-express": "^1.1.0",
-    "graphql-subscriptions": "^0.5.1",
+    "graphql-subscriptions": "^0.4.4",
     "graphql-tools": "^1.2.1",
     "graphql-type-json": "^0.1.4",
     "graphql-url": "^2.0.4",
@@ -68,7 +68,7 @@
     "pretty-error": "^2.1.1",
     "redis": "^2.8.0",
     "source-map-support": "^0.4.16",
-    "subscriptions-transport-ws": "^0.9.0",
+    "subscriptions-transport-ws": "^0.8.1",
     "validator": "^8.0.0"
   },
   "devDependencies": {
