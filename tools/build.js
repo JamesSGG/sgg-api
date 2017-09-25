@@ -9,7 +9,6 @@ const { debounce } = require('lodash/fp')
 
 const task = require('./task')
 
-
 const delay100ms = debounce(100)
 
 module.exports = task('build', function buildTask({ watch = false, onComplete } = {}) {
@@ -35,11 +34,9 @@ module.exports = task('build', function buildTask({ watch = false, onComplete } 
       }
 
       // Get destination file name, e.g. src/app.js (src) -> build/app.js (dest)
-      const filePath = (
-        src.startsWith('src')
+      const filePath = src.startsWith('src')
         ? path.relative('src', src)
         : src
-      )
 
       const dest = `build/${filePath}`
 
@@ -68,17 +65,13 @@ module.exports = task('build', function buildTask({ watch = false, onComplete } 
               })
 
               // Enable source maps
-              const dataBefore = (
-                src === 'src/server.js'
+              const dataBefore = src === 'src/server.js'
                 ? 'require(\'source-map-support\').install(); '
                 : ''
-              )
 
-              const dataAfter = (
-                map
+              const dataAfter = map
                 ? `\n//# sourceMappingURL=${path.basename(src)}.map\n`
                 : ''
-              )
 
               const data = `${dataBefore}${code}${dataAfter}`
 

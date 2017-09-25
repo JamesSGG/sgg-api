@@ -12,6 +12,7 @@ module.exports = {
     'brace-style': ['error', 'stroustrup', {
       allowSingleLine: false,
     }],
+    'object-curly-newline': 'off',
     'arrow-parens': ['error', 'always'],
     'prefer-arrow-callback': ['error', {
       allowNamedFunctions: true,

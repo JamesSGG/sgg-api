@@ -69,22 +69,28 @@ function isValidReturnURL(url: string): boolean {
 // http://localhost:8880/login/facebook/return and finally, user is being redirected
 // to http://localhost:3200/?sessionId=xxx where front-end middleware can save that
 // session ID into cookie (res.cookie.sid = req.query.sessionId).
-function getSuccessRedirect(req) {
+function getBaseRedirectUrl(req) {
   const url = req.query.return || req.body.return || '/'
 
   if (!isValidReturnURL(url)) {
     return '/'
   }
 
-  if (!getOrigin(url)) {
-    return url
+  return url
+}
+
+const setBaseReturnUrl = (req, res, next) => {
+  req.session.returnUrl = getBaseRedirectUrl(req)
+  next()
+}
+
+const getSuccessReturnUrl = (req) => {
+  const { user = {}, session = {} } = req
+  const { returnUrl } = session
+
+  if (!getOrigin(returnUrl)) {
+    return returnUrl
   }
-
-  // const { cookies, session, user } = req
-  // const { originalMaxAge } = session.cookie
-  // const sessionId = cookies.sid
-
-  const { user = {} } = req
 
   const queryString = compact([
     user.id && `userId=${user.id}`,
@@ -92,13 +98,19 @@ function getSuccessRedirect(req) {
     // originalMaxAge && `maxAge=${originalMaxAge}`,
   ]).join('&')
 
-  const separator = url.includes('?') ? '&' : '?'
+  const separator = returnUrl.includes('?') ? '&' : '?'
 
-  return `${url}${separator}${queryString}`
+  return `${returnUrl}${separator}${queryString}`
 }
 
-const setReturnUrl = (req, res, next) => {
-  req.session.returnTo = getSuccessRedirect(req)
+const handleError = (error, req, res, next) => {
+  console.log(error.message)
+
+  res.send({
+    error: true,
+    message: error.message,
+  })
+
   next()
 }
 
@@ -109,31 +121,25 @@ loginProviders.forEach(({ provider, options }) => {
     ...options,
   })
 
-  const handleReturn = (req, res, next) => {
-    const { returnTo } = req.session
+  const handleAuth = (req, res, next) => {
+    const returnUrl = getSuccessReturnUrl(req)
 
     const authenticate = passport.authenticate(provider, {
-      successReturnToOrRedirect: true,
       failureFlash: true,
-      failureRedirect: `${getOrigin(returnTo)}/login`,
+      failureRedirect: `${getOrigin(returnUrl)}/login`,
     })
 
     return authenticate(req, res, next)
   }
 
-  const handleError = (error, req, res, next) => {
-    console.log(error.message)
+  const handleReturn = (req, res) => {
+    const returnUrl = getSuccessReturnUrl(req)
 
-    res.send({
-      error: true,
-      message: error.message,
-    })
-
-    next()
+    res.redirect(returnUrl)
   }
 
-  router.get(`/login/${provider}`, setReturnUrl, handleLogin, handleError)
-  router.get(`/login/${provider}/return`, handleReturn, handleError)
+  router.get(`/login/${provider}`, setBaseReturnUrl, handleLogin, handleError)
+  router.get(`/login/${provider}/return`, handleAuth, handleReturn, handleError)
 })
 
 // Remove the `user` object from the session. Example:

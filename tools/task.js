@@ -9,11 +9,9 @@
 function run(task, action, ...args) {
   const command = process.argv[2]
   const start = new Date()
-  const taskName = (
-    command && !command.startsWith('-')
-    ? `${task}-${command}`
+  const taskName = command && !command.startsWith('-')
+    ? `${task}:${command}`
     : task
-  )
 
   process.stdout.write(`Starting '${taskName}'...\n`)
 

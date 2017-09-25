@@ -85,8 +85,6 @@ export default {
 
       const result = await addFriendToUser(userId, friendId)
 
-      console.log(result)
-
       pubsub.publish(USER_FRIEND_ADDED, {
         userFriendAdded: result,
       })

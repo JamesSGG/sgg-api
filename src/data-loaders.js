@@ -4,7 +4,7 @@
  * Data loaders to be used with GraphQL resolve() functions. For example:
  *
  *   resolve(post, args, { users }) {
- *     return users.load(post.author_id);
+ *     return users.load(post.author_id)
  *   }
  *
  * For more information visit https://github.com/facebook/dataloader
