@@ -7,7 +7,7 @@
     }],
   ],
   "plugins": [
-    "inline-import-graphql-ast",
+    "inline-import",
     "transform-decorators-legacy",
     "transform-class-properties",
     "transform-export-extensions",
