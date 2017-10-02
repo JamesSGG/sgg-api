@@ -18,6 +18,7 @@ export function getMailChimpInstance(): ?MailChimpAdapter {
   const { MAILCHIMP_API_KEY } = process.env
 
   if (!MAILCHIMP_API_KEY) {
+    console.error('MailChimp API key is missing')
     return null
   }
 

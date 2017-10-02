@@ -55,7 +55,7 @@ function handleExit(options, error) {
       try {
         close(maybeExit)
       }
-      catch (_) {
+      catch (_unused) {
         maybeExit()
       }
     })

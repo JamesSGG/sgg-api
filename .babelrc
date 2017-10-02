@@ -8,10 +8,12 @@
   ],
   "plugins": [
     "inline-import",
+    "syntax-optional-catch-binding",
     "transform-decorators-legacy",
     "transform-class-properties",
     "transform-export-extensions",
     "transform-flow-strip-types",
-    "transform-object-rest-spread"
+    "transform-object-rest-spread",
+    "transform-optional-catch-binding",
   ]
 }

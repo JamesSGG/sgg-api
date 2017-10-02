@@ -46,7 +46,10 @@ function buildApp() {
     try {
       const Module = require('module')
       const m = new Module()
-      m._compile(fs.readFileSync('./tools/build.js', 'utf8'), path.resolve('./tools/build.js'))
+      const buildScript = fs.readFileSync('./tools/build.js', 'utf8')
+      const buildScriptPath = path.resolve('./tools/build.js')
+
+      m._compile(buildScript, buildScriptPath)
     }
     catch (error) {
       // Do nothing
