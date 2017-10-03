@@ -35,7 +35,27 @@ export default {
 
       const gamesPlayed = await getUserGamesPlayed(obj.id)
 
-      return gamesPlayed.map(camelKeys)
+      return gamesPlayed.map((item) => {
+        const {
+          game_id,
+          game_title,
+          platform_id,
+          platform_name,
+          ...remaining
+        } = item
+
+        return {
+          ...camelKeys(remaining),
+          game: {
+            id: game_id,
+            game_title,
+          },
+          gamePlatform: {
+            id: platform_id,
+            platform_name,
+          },
+        }
+      })
     },
     async friends(obj, args, context) {
       const { id } = obj

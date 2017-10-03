@@ -28,6 +28,24 @@ export type LoginTokens = {
   refreshToken?: string,
 }
 
+// A game record
+export type Game = {
+  // Record ID
+  id: ID,
+
+  // The game title
+  gameTitle?: String,
+}
+
+// A game platform record
+export type GamePlatform = {
+  // Record ID
+  id: ID,
+
+  // The platform name
+  platformName?: String,
+}
+
 // A game that has been played by a user
 export type GamePlayed = {
   // The title of the game
@@ -38,6 +56,24 @@ export type GamePlayed = {
 
   // The user's Steam username, Xbox gamer tag, PSN name, etc. for this game
   gamerTag: ?string,
+}
+
+export type AddGameInput = {
+  gameTitle: string,
+}
+
+export type EditGameInput = {
+  id: ID,
+  gameTitle: string,
+}
+
+export type AddGamePlatformInput = {
+  gamePlatform: string,
+}
+
+export type EditGamePlatformInput = {
+  id: ID,
+  gamePlatform: string,
 }
 
 // Input when adding or editing a played game

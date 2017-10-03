@@ -20,18 +20,36 @@ input AddFriendInput {
   friendId: ID!
 }
 
+input AddGameInput {
+  gameTitle: String
+}
+
+input EditGameInput {
+  id: ID!
+  gameTitle: String
+}
+
+input AddGamePlatformInput {
+  platformName: String
+}
+
+input EditGamePlatformInput {
+  id: ID!
+  platformName: String
+}
+
 input AddGamePlayedInput {
   userId: ID!
-  gameTitle: String!
-  gamePlatform: String!
+  gameId: ID!
+  gamePlatformId: ID
   gamerTag: String
 }
 
 input EditGamePlayedInput {
   id: ID!
   userId: ID
-  gameTitle: String
-  gamePlatform: String
+  gameId: ID
+  gamePlatformId: ID
   gamerTag: String
 }
 
@@ -46,20 +64,26 @@ type AddFriendResult {
 }
 
 type Query {
-  # Fetch a specific user by ID
-  user(id: ID!): User
-
   # Fetch all users
   users: [User]
 
-  # Fetch the current logged-in user
-  currentUser: User
-
-  # Fetch user login records
+  # Fetch all user login records
   logins: [UserLogin]
+
+  # Fetch all games
+  games: [Game]
+
+  # Fetch all game platforms
+  gamePlatforms: [GamePlatform]
 
   # Fetch all games played
   gamesPlayed: [GamePlayed]
+
+  # Fetch a specific user by ID
+  user(id: ID!): User
+
+  # Fetch the current logged-in user
+  currentUser: User
 }
 
 type Mutation {
@@ -73,8 +97,20 @@ type Mutation {
   # Randomly generate a new user and add to specified user's friends list
   createFriendForUser(id: ID!): User
 
+  # Adds a new game
+  addGame(input: AddGameInput!): Game
+
+  # Adds a new game platform
+  addGamePlatform(input: AddGamePlatformInput!): GamePlatform
+
   # Adds a game that a user has played
   addGamePlayed(input: AddGamePlayedInput!): GamePlayed
+
+  # Edits an existing game
+  editGame(input: EditGameInput!): Game
+
+  # Edits an existing game platform
+  editGamePlatform(input: EditGamePlatformInput!): GamePlatform
 
   # Edits an existing game that a user has played
   editGamePlayed(input: EditGamePlayedInput!): GamePlayed

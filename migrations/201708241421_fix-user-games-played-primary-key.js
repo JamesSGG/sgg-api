@@ -1,6 +1,6 @@
 
 module.exports.up = async (db) => {
-  await db.schema.alterTable('user_games_played', (table) => {
+  await db.schema.table('user_games_played', (table) => {
     table.dropPrimary()
 
     table
@@ -12,7 +12,7 @@ module.exports.up = async (db) => {
 }
 
 module.exports.down = async (db) => {
-  await db.schema.alterTable('user_games_played', (table) => {
+  await db.schema.table('user_games_played', (table) => {
     table.dropPrimary()
     table.dropColumn('id')
 

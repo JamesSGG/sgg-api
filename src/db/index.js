@@ -3,6 +3,7 @@
 import knex from 'knex'
 import faker from 'faker'
 import {
+  curry,
   compose,
   property,
   map,
@@ -21,9 +22,13 @@ import type {
   LoginProfile,
   LoginTokens,
   GamePlayed,
-  AddGamePlayedInput,
-  EditGamePlayedInput,
-  AddFriendToUserResult,
+  AddFriendResult,
+  // AddGameInput,
+  // AddGamePlatformInput,
+  // AddGamePlayedInput,
+  // EditGameInput,
+  // EditGamePlatformInput,
+  // EditGamePlayedInput,
 } from '../schema/flow'
 
 const { DATABASE_URL, DATABASE_DEBUG } = process.env
@@ -44,9 +49,53 @@ export const snakeKeys = mapKeys(snakeCase)
 
 export const getQueryCount = compose(toNumber, property('count'))
 
-export async function findUserById(userId: string) {
+async function _findRecord(tableName: string, id: string) {
   return db
-    .table('users')
+    .select('*')
+    .from(tableName)
+    .where('id', id)
+}
+
+async function _createRecord(tableName: string, input: *) {
+  const record = snakeKeys(input)
+
+  return db
+    .table(tableName)
+    .insert(record)
+    .returning('*')
+    .then(head)
+}
+
+async function _updateRecord(tableName: string, input: *) {
+  const { id, ...fields } = input
+  const record = snakeKeys(fields)
+
+  return db
+    .table(tableName)
+    .where('id', id)
+    .update(record)
+    .returning('*')
+    .then(head)
+}
+
+async function _deleteRecord(tableName: string, id: string) {
+  return db
+    .table(tableName)
+    .where('id', id)
+    .del()
+}
+
+export function findAllRecords(tableName: string) {
+  return async () => db.select('*').from(tableName)
+}
+
+export const findRecord = curry(_findRecord)
+export const createRecord = curry(_createRecord)
+export const updateRecord = curry(_updateRecord)
+export const deleteRecord = curry(_deleteRecord)
+
+export async function findUserById(userId: string) {
+  return findRecord('users', userId)
     .where({ id: userId })
     .first()
 }
@@ -233,60 +282,31 @@ export async function createFakeUser() {
     .then(head)
 }
 
-export async function addFriendToUser(
-  userId: string,
-  friendId: string,
-): Promise<AddFriendToUserResult> {
-  if (!userId || !friendId) {
-    return null
-  }
-
-  const hasFriendResult = await db
-    .table('user_friends')
-    .count('user_id')
-    .where('user_id', userId)
-    .andWhere('friend_id', friendId)
-    .then(head)
-
-  const hasFriend = getQueryCount(hasFriendResult) > 0
-
-  if (hasFriend) {
-    console.log(`User ${userId} is already friends with ${friendId}`)
-
-    return { userId, friendId }
-  }
-
-  const dbRecord = snakeKeys({ userId, friendId })
-
-  return db
-    .table('user_friends')
-    .insert(dbRecord)
-    .returning('*')
-    .then(head)
-}
-
-export async function getAllUsers(): Promise<Array<User>> {
-  return db
-    .select('*')
-    .from('users')
-}
-
-export async function getAllGamesPlayed(): Promise<Array<GamePlayed>> {
-  return db
-    .select('*')
-    .from('user_games_played')
-}
+export const getAllUsers = findAllRecords('users')
+export const getAllGames = findAllRecords('games')
+export const getAllGamePlatforms = findAllRecords('game_platforms')
+export const getAllGamesPlayed = findAllRecords('user_games_played')
 
 export async function getUserGamesPlayed(userId: string): Promise<Array<GamePlayed>> {
   return db
-    .select('*')
+    .select(
+      'user_games_played.*',
+      'games.game_title',
+      'game_platforms.platform_name',
+    )
     .from('user_games_played')
-    .where('user_id', userId)
+    .where('user_games_played.user_id', userId)
+    .leftOuterJoin('games', {
+      'user_games_played.game_id': 'games.id',
+    })
+    .leftOuterJoin('game_platforms', {
+      'user_games_played.platform_id': 'game_platforms.id',
+    })
 }
 
 export async function getFriendsOfUser(userId: string): Promise<Array<User>> {
   return db
-    .select('user_id', 'friend_id')
+    .select('*')
     .from('user_friends')
     .whereIn('user_id', userId)
 }
@@ -316,31 +336,50 @@ export async function bumpUserLastSeenAt(userId: string): Promise<String> {
     .then(head)
 }
 
-export async function addUserGamePlayed(input: AddGamePlayedInput) {
-  const record = snakeKeys(input)
+export const addGame = createRecord('games')
+export const addGamePlatform = createRecord('game_platforms')
+export const addUserGamePlayed = createRecord('user_games_played')
 
-  return db
-    .table('user_games_played')
-    .insert(record)
-    .returning('*')
+export const editGame = updateRecord('games')
+export const editGamePlatform = updateRecord('game_platforms')
+export const editUserGamePlayed = updateRecord('user_games_played')
+
+export async function addFriendToUser(
+  userId: string,
+  friendId: string,
+): Promise<?AddFriendResult> {
+  // Bail if we don't have both the requesting and receiving user IDs.
+  if (!userId || !friendId) {
+    return null
+  }
+
+  // Log a warning and return successfully if the requesting user and the
+  // receiving user are the same. This should never happen but ¯\_(ツ)_/¯
+  if (userId === friendId) {
+    console.log('You can’t add a user to its own friends list')
+    console.log(`The user in question is: ${userId}`)
+
+    return { userId, friendId }
+  }
+
+  // Check to see if the receiving user is already in the requesting user's
+  // friends list.
+  const hasFriendResult = await db
+    .table('user_friends')
+    .count('user_id')
+    .where('user_id', userId)
+    .andWhere('friend_id', friendId)
     .then(head)
+
+  const hasFriend = getQueryCount(hasFriendResult) > 0
+
+  if (hasFriend) {
+    console.log(`User ${userId} is already friends with ${friendId}`)
+
+    return { userId, friendId }
+  }
+
+  return createRecord('user_friends', { userId, friendId })
 }
 
-export async function editUserGamePlayed(input: EditGamePlayedInput) {
-  const { id, ...fields } = input
-  const record = snakeKeys(fields)
-
-  return db
-    .table('user_games_played')
-    .where('id', id)
-    .update(record)
-    .returning('*')
-    .then(head)
-}
-
-export async function deleteUserGamePlayed(id: string) {
-  return db
-    .table('user_games_played')
-    .where('id', id)
-    .del()
-}
+export const deleteUserGamePlayed = deleteRecord('user_games_played')

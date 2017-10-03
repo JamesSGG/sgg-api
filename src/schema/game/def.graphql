@@ -1,0 +1,18 @@
+
+# A game record
+type Game {
+  # Record ID
+  id: ID!
+
+  # The game title
+  gameTitle: String
+}
+
+# A game platform record
+type GamePlatform {
+  # Record ID
+  id: ID!
+
+  # The platform name
+  platformName: String
+}

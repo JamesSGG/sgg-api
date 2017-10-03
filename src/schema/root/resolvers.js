@@ -8,12 +8,8 @@ import { isEmpty } from 'lodash/fp'
 import {
   pubsub,
   USER_FRIEND_ADDED,
-  USER_LAST_SEEN_AT_CHANGED,
+  USER_LAST_SEEN_AT_UPDATED,
 } from '../../redis'
-
-// function filtered(asyncIterator, filter) {
-//   return withFilter(() => asyncIterator, filter)
-// }
 
 export default {
   JSON: GraphQLJSON,
@@ -24,6 +20,38 @@ export default {
   AbsoluteURL: GraphQLAbsoluteUrl,
   RelativeURL: GraphQLRelativeUrl,
   Query: {
+    users(obj, args, context) {
+      const { queries: { getAllUsers } } = context
+
+      return getAllUsers()
+    },
+
+    logins(obj, args, context) {
+      const { queries: { getUserLogins } } = context
+
+      return getUserLogins()
+    },
+
+    games(obj, args, context) {
+      const { queries: { getAllGames } } = context
+
+      return getAllGames()
+    },
+
+    gamePlatforms(obj, args, context) {
+      const { queries: { getAllGamePlatforms } } = context
+
+      return getAllGamePlatforms()
+    },
+
+    async gamesPlayed(obj, args, context) {
+      const { queries: { camelKeys, getAllGamesPlayed } } = context
+
+      const gamesPlayed = await getAllGamesPlayed()
+
+      return gamesPlayed.map(camelKeys)
+    },
+
     user(obj, args, context) {
       const { loaders: { usersById } } = context
       const { id } = args
@@ -35,34 +63,14 @@ export default {
       return usersById.load(id)
     },
 
-    users(obj, args, context) {
-      const { queries: { getAllUsers } } = context
-
-      return getAllUsers()
-    },
-
     currentUser(obj, args, context) {
-      const { loaders: { user, usersById } } = context
+      const { user, loaders: { usersById } } = context
 
       if (!user) {
         return null
       }
 
       return usersById.load(user.id)
-    },
-
-    logins(obj, args, context) {
-      const { queries: { getUserLogins } } = context
-
-      return getUserLogins()
-    },
-
-    async gamesPlayed(obj, args, context) {
-      const { queries: { camelKeys, getAllGamesPlayed } } = context
-
-      const gamesPlayed = await getAllGamesPlayed()
-
-      return gamesPlayed.map(camelKeys)
     },
   },
   Mutation: {
@@ -72,7 +80,7 @@ export default {
 
       const result = await bumpUserLastSeenAt(id)
 
-      pubsub.publish(USER_LAST_SEEN_AT_CHANGED, {
+      pubsub.publish(USER_LAST_SEEN_AT_UPDATED, {
         userLastSeenAtChanged: { userId: id, result },
       })
 
@@ -83,13 +91,18 @@ export default {
       const { input: { userId, friendId } } = args
       const { queries: { addFriendToUser } } = context
 
-      const result = await addFriendToUser(userId, friendId)
+      const resultA = await addFriendToUser(userId, friendId)
+      const resultB = await addFriendToUser(friendId, userId)
 
       pubsub.publish(USER_FRIEND_ADDED, {
-        userFriendAdded: result,
+        userFriendAdded: resultA,
       })
 
-      return result
+      pubsub.publish(USER_FRIEND_ADDED, {
+        userFriendAdded: resultB,
+      })
+
+      return resultA
     },
 
     async createFriendForUser(obj, args, context) {
@@ -110,6 +123,24 @@ export default {
       return newUser
     },
 
+    async addGame(obj, args, context) {
+      const { input } = args
+      const { queries: { addGame } } = context
+
+      const newGame = await addGame(input)
+
+      return newGame
+    },
+
+    async addGamePlatform(obj, args, context) {
+      const { input } = args
+      const { queries: { addGamePlatform } } = context
+
+      const newGamePlatform = await addGamePlatform(input)
+
+      return newGamePlatform
+    },
+
     async addGamePlayed(obj, args, context) {
       const { input } = args
       const { queries: { camelKeys, addUserGamePlayed } } = context
@@ -119,13 +150,31 @@ export default {
       return camelKeys(newGame)
     },
 
+    async editGame(obj, args, context) {
+      const { input } = args
+      const { queries: { camelKeys, editGame } } = context
+
+      const updatedGame = await editGame(input)
+
+      return camelKeys(updatedGame)
+    },
+
+    async editGamePlatform(obj, args, context) {
+      const { input } = args
+      const { queries: { camelKeys, editGame } } = context
+
+      const updatedGame = await editGame(input)
+
+      return camelKeys(updatedGame)
+    },
+
     async editGamePlayed(obj, args, context) {
       const { input } = args
       const { queries: { camelKeys, editUserGamePlayed } } = context
 
-      const updatedGame = await editUserGamePlayed(input)
+      const updatedGamePlayed = await editUserGamePlayed(input)
 
-      return camelKeys(updatedGame)
+      return camelKeys(updatedGamePlayed)
     },
 
     async deleteGamePlayed(obj, args, context) {
@@ -140,7 +189,7 @@ export default {
   Subscription: {
     userLastSeenAtChanged: {
       subscribe: withFilter(
-        () => pubsub.asyncIterator(USER_LAST_SEEN_AT_CHANGED),
+        () => pubsub.asyncIterator(USER_LAST_SEEN_AT_UPDATED),
         (payload, variables) => {
           const { userIds } = variables
 
