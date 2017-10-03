@@ -2,6 +2,42 @@
 import { property, isEmpty } from 'lodash/fp'
 
 export default {
+  GamePlayed: {
+    id(obj) {
+      return obj.id
+    },
+    createdAt(obj) {
+      return obj.created_at
+    },
+    updatedAt(obj) {
+      return obj.updated_at
+    },
+    userId(obj) {
+      return obj.user_id
+    },
+    gamerTag(obj) {
+      return obj.gamer_tag
+    },
+    game(obj) {
+      const { game_id: id, game_title } = obj
+
+      return {
+        __typename: 'Game',
+        id,
+        game_title,
+      }
+    },
+    gamePlatform(obj) {
+      const { platform_id: id, platform_name } = obj
+
+      return {
+        __typename: 'GamePlatform',
+        id,
+        platform_name,
+      }
+    },
+  },
+
   User: {
     id(obj) {
       return obj.id
@@ -31,31 +67,11 @@ export default {
       return null
     },
     async gamesPlayed(obj, args, context) {
-      const { queries: { camelKeys, getUserGamesPlayed } } = context
+      const { queries: { getUserGamesPlayed } } = context
 
       const gamesPlayed = await getUserGamesPlayed(obj.id)
 
-      return gamesPlayed.map((item) => {
-        const {
-          game_id,
-          game_title,
-          platform_id,
-          platform_name,
-          ...remaining
-        } = item
-
-        return {
-          ...camelKeys(remaining),
-          game: {
-            id: game_id,
-            game_title,
-          },
-          gamePlatform: {
-            id: platform_id,
-            platform_name,
-          },
-        }
-      })
+      return gamesPlayed
     },
     async friends(obj, args, context) {
       const { id } = obj

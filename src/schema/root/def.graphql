@@ -20,32 +20,32 @@ input AddFriendInput {
   friendId: ID!
 }
 
-input AddGameInput {
+input CreateGameInput {
   gameTitle: String
 }
 
-input EditGameInput {
+input UpdateGameInput {
   id: ID!
   gameTitle: String
 }
 
-input AddGamePlatformInput {
+input CreateGamePlatformInput {
   platformName: String
 }
 
-input EditGamePlatformInput {
+input UpdateGamePlatformInput {
   id: ID!
   platformName: String
 }
 
-input AddGamePlayedInput {
+input CreateGamePlayedInput {
   userId: ID!
   gameId: ID!
   platformId: ID
   gamerTag: String
 }
 
-input EditGamePlayedInput {
+input UpdateGamePlayedInput {
   id: ID!
   userId: ID
   gameId: ID
@@ -94,26 +94,29 @@ type Mutation {
   # Adds a friend to a user
   addFriendToUser(input: AddFriendInput!): AddFriendResult
 
-  # Randomly generate a new user and add to specified user's friends list
-  createFriendForUser(id: ID!): User
+  # Creates a new game
+  createGame(input: CreateGameInput!): Game
 
-  # Adds a new game
-  addGame(input: AddGameInput!): Game
+  # Updates an existing game
+  updateGame(input: UpdateGameInput!): Game
 
-  # Adds a new game platform
-  addGamePlatform(input: AddGamePlatformInput!): GamePlatform
+  # Deletes an existing game
+  deleteGame(id: ID!): ID
 
-  # Adds a game that a user has played
-  addGamePlayed(input: AddGamePlayedInput!): GamePlayed
+  # Creates a new game platform
+  createGamePlatform(input: CreateGamePlatformInput!): GamePlatform
 
-  # Edits an existing game
-  editGame(input: EditGameInput!): Game
+  # Updates an existing game platform
+  updateGamePlatform(input: UpdateGamePlatformInput!): GamePlatform
 
-  # Edits an existing game platform
-  editGamePlatform(input: EditGamePlatformInput!): GamePlatform
+  # Deletes an existing game platform
+  deleteGamePlatform(id: ID!): ID
 
-  # Edits an existing game that a user has played
-  editGamePlayed(input: EditGamePlayedInput!): GamePlayed
+  # Creates a game that a user has played
+  createGamePlayed(input: CreateGamePlayedInput!): GamePlayed
+
+  # Updates an existing game that a user has played
+  updateGamePlayed(input: UpdateGamePlayedInput!): GamePlayed
 
   # Deletes an existing game that a user has played
   deleteGamePlayed(id: ID!): ID
@@ -121,5 +124,5 @@ type Mutation {
 
 type Subscription {
   # Is triggered when a user's "last_seen_at" timestamp is updated
-  userLastSeenAtChanged: UserLastSeenAtResult
+  userLastSeenAtUpdated: UserLastSeenAtResult
 }

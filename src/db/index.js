@@ -94,6 +94,33 @@ export const createRecord = curry(_createRecord)
 export const updateRecord = curry(_updateRecord)
 export const deleteRecord = curry(_deleteRecord)
 
+export async function createUser(profile: LoginProfile): Promise<User> {
+  const {
+    emails = [],
+    photos = [],
+    displayName = '',
+  } = profile || {}
+
+  const { value: imageUrl } = head(photos) || {}
+
+  const emailData = emails.map((email) => ({
+    email: email.value,
+    verified: Boolean(email.verified),
+  }))
+
+  const dbRecord = snakeKeys({
+    displayName,
+    imageUrl,
+    emails: JSON.stringify(emailData),
+  })
+
+  return db
+    .table('users')
+    .insert(dbRecord)
+    .returning('*')
+    .then(head)
+}
+
 export async function findUserById(userId: string) {
   return findRecord('users', userId)
     .where({ id: userId })
@@ -177,33 +204,6 @@ export async function findUser(args: FindUserArgs): Promise<?User> {
   return camelKeys(user)
 }
 
-export async function createUser(profile: LoginProfile): Promise<User> {
-  const {
-    emails = [],
-    photos = [],
-    displayName = '',
-  } = profile || {}
-
-  const { value: imageUrl } = head(photos) || {}
-
-  const emailData = emails.map((email) => ({
-    email: email.value,
-    verified: Boolean(email.verified),
-  }))
-
-  const dbRecord = snakeKeys({
-    displayName,
-    imageUrl,
-    emails: JSON.stringify(emailData),
-  })
-
-  return db
-    .table('users')
-    .insert(dbRecord)
-    .returning('*')
-    .then(head)
-}
-
 export async function getUserLogins(userId?: string) {
   const query = db
     .select('*')
@@ -282,10 +282,10 @@ export async function createFakeUser() {
     .then(head)
 }
 
-export const getAllUsers = findAllRecords('users')
-export const getAllGames = findAllRecords('games')
-export const getAllGamePlatforms = findAllRecords('game_platforms')
-export const getAllGamesPlayed = findAllRecords('user_games_played')
+export const findAllUsers = findAllRecords('users')
+export const findAllGames = findAllRecords('games')
+export const findAllGamePlatforms = findAllRecords('game_platforms')
+export const findAllGamesPlayed = findAllRecords('user_games_played')
 
 export async function getGamePlayed(id: string): Promise<Array<GamePlayed>> {
   return db
@@ -354,13 +354,18 @@ export async function bumpUserLastSeenAt(userId: string): Promise<String> {
     .then(head)
 }
 
-export const addGame = createRecord('games')
-export const addGamePlatform = createRecord('game_platforms')
-export const addUserGamePlayed = createRecord('user_games_played')
+export const createGame = createRecord('games')
+export const updateGame = updateRecord('games')
+export const deleteGame = deleteRecord('games')
 
-export const editGame = updateRecord('games')
-export const editGamePlatform = updateRecord('game_platforms')
-export const editUserGamePlayed = updateRecord('user_games_played')
+export const createGamePlatform = createRecord('game_platforms')
+export const updateGamePlatform = updateRecord('game_platforms')
+export const deleteGamePlatform = deleteRecord('game_platforms')
+
+export const createUserGamePlayed = createRecord('user_games_played')
+export const updateUserGamePlayed = updateRecord('user_games_played')
+export const deleteUserGamePlayed = deleteRecord('user_games_played')
+
 
 export async function addFriendToUser(
   userId: string,
@@ -399,5 +404,3 @@ export async function addFriendToUser(
 
   return createRecord('user_friends', { userId, friendId })
 }
-
-export const deleteUserGamePlayed = deleteRecord('user_games_played')

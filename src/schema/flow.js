@@ -58,33 +58,32 @@ export type GamePlayed = {
   gamerTag: ?string,
 }
 
-export type AddGameInput = {
+export type CreateGameInput = {
   gameTitle: string,
 }
 
-export type EditGameInput = {
+export type UpdateGameInput = {
   id: ID,
   gameTitle: string,
 }
 
-export type AddGamePlatformInput = {
+export type CreateGamePlatformInput = {
   gamePlatform: string,
 }
 
-export type EditGamePlatformInput = {
+export type UpdateGamePlatformInput = {
   id: ID,
   gamePlatform: string,
 }
 
-// Input when adding or editing a played game
-export type AddGamePlayedInput = {
+export type CreateGamePlayedInput = {
   userId: ID,
   gameTitle: string,
   gamePlatform: string,
   gamerTag?: string,
 }
 
-export type EditGamePlayedInput = {
+export type UpdateGamePlayedInput = {
   id: ID,
   userId?: ID,
   gameTitle?: string,

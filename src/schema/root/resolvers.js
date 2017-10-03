@@ -21,40 +21,40 @@ export default {
   RelativeURL: GraphQLRelativeUrl,
   Query: {
     users(obj, args, context) {
-      const { queries: { getAllUsers } } = context
+      const { queries: { findAllUsers } } = context
 
-      return getAllUsers()
+      return findAllUsers()
     },
 
     logins(obj, args, context) {
-      const { queries: { getUserLogins } } = context
+      const { queries: { findUserLogins } } = context
 
-      return getUserLogins()
+      return findUserLogins()
     },
 
     games(obj, args, context) {
-      const { queries: { getAllGames } } = context
+      const { queries: { findAllGames } } = context
 
-      return getAllGames()
+      return findAllGames()
     },
 
     gamePlatforms(obj, args, context) {
-      const { queries: { getAllGamePlatforms } } = context
+      const { queries: { findAllGamePlatforms } } = context
 
-      return getAllGamePlatforms()
+      return findAllGamePlatforms()
     },
 
     async gamesPlayed(obj, args, context) {
-      const { queries: { camelKeys, getAllGamesPlayed } } = context
+      const { queries: { camelKeys, findAllGamesPlayed } } = context
 
-      const gamesPlayed = await getAllGamesPlayed()
+      const gamesPlayed = await findAllGamesPlayed()
 
       return gamesPlayed.map(camelKeys)
     },
 
     user(obj, args, context) {
-      const { loaders: { usersById } } = context
       const { id } = args
+      const { loaders: { usersById } } = context
 
       if (!id) {
         return null
@@ -86,7 +86,7 @@ export default {
       }
 
       pubsub.publish(USER_LAST_SEEN_AT_UPDATED, {
-        userLastSeenAtChanged: result,
+        userLastSeenAtUpdated: result,
       })
 
       return result
@@ -110,102 +110,78 @@ export default {
       return resultA
     },
 
-    async createFriendForUser(obj, args, context) {
-      const { id } = args
-      const { queries: { createFakeUser, addFriendToUser } } = context
-
-      const newUser = await createFakeUser()
-
-      addFriendToUser(id, newUser.id)
-
-      pubsub.publish(USER_FRIEND_ADDED, {
-        userFriendAdded: {
-          userId: id,
-          friendId: newUser.id,
-        },
-      })
-
-      return newUser
-    },
-
-    async addGame(obj, args, context) {
+    async createGame(obj, args, context) {
       const { input } = args
-      const { queries: { addGame } } = context
+      const { queries: { createGame } } = context
 
-      const newGame = await addGame(input)
+      const newGame = await createGame(input)
 
       return newGame
     },
 
-    async addGamePlatform(obj, args, context) {
+    async updateGame(obj, args, context) {
       const { input } = args
-      const { queries: { addGamePlatform } } = context
+      const { queries: { camelKeys, updateGame } } = context
 
-      const newGamePlatform = await addGamePlatform(input)
+      const updatedGame = await updateGame(input)
+
+      return camelKeys(updatedGame)
+    },
+
+    async deleteGame(obj, args, context) {
+      const { id } = args
+      const { queries: { deleteGame } } = context
+
+      await deleteGame(id)
+
+      return id
+    },
+
+    async createGamePlatform(obj, args, context) {
+      const { input } = args
+      const { queries: { createGamePlatform } } = context
+
+      const newGamePlatform = await createGamePlatform(input)
 
       return newGamePlatform
     },
 
-    async addGamePlayed(obj, args, context) {
+    async updateGamePlatform(obj, args, context) {
       const { input } = args
-      const { queries: { camelKeys, addUserGamePlayed } } = context
+      const { queries: { camelKeys, updateGamePlatform } } = context
 
-      const newGame = await addUserGamePlayed(input)
+      const updatedGamePlatform = await updateGamePlatform(input)
+
+      return camelKeys(updatedGamePlatform)
+    },
+
+    async deleteGamePlatform(obj, args, context) {
+      const { id } = args
+      const { queries: { deleteGamePlatform } } = context
+
+      await deleteGamePlatform(id)
+
+      return id
+    },
+
+    async createGamePlayed(obj, args, context) {
+      const { input } = args
+      const { queries: { camelKeys, createGamePlayed } } = context
+
+      const newGame = await createGamePlayed(input)
 
       return camelKeys(newGame)
     },
 
-    async editGame(obj, args, context) {
+    async updateGamePlayed(obj, args, context) {
       const { input } = args
-      const { queries: { camelKeys, editGame } } = context
+      const { queries: { updateUserGamePlayed, getGamePlayed } } = context
 
-      const updatedGame = await editGame(input)
-
-      return camelKeys(updatedGame)
-    },
-
-    async editGamePlatform(obj, args, context) {
-      const { input } = args
-      const { queries: { camelKeys, editGame } } = context
-
-      const updatedGame = await editGame(input)
-
-      return camelKeys(updatedGame)
-    },
-
-    // TODO: Add resolver for root-level game played queries.
-    async editGamePlayed(obj, args, context) {
-      const { input } = args
-      const { queries: { camelKeys, editUserGamePlayed, getGamePlayed } } = context
-
-      await editUserGamePlayed(input)
+      await updateUserGamePlayed(input)
 
       const gamePlayed = await getGamePlayed(input.id)
 
-      const {
-        game_id,
-        game_title,
-        platform_id,
-        platform_name,
-        ...remaining
-      } = gamePlayed
-
-      const result = {
-        ...camelKeys(remaining),
-        game: {
-          id: game_id,
-          game_title,
-        },
-        gamePlatform: {
-          id: platform_id,
-          platform_name,
-        },
-      }
-
-      console.log('---------- editGamePlayed ----------')
-      console.log(result)
-
-      return result
+      return gamePlayed
     },
 
     async deleteGamePlayed(obj, args, context) {
@@ -218,7 +194,7 @@ export default {
     },
   },
   Subscription: {
-    userLastSeenAtChanged: {
+    userLastSeenAtUpdated: {
       subscribe: withFilter(
         () => pubsub.asyncIterator(USER_LAST_SEEN_AT_UPDATED),
         (payload, variables) => {
@@ -228,7 +204,7 @@ export default {
             return true
           }
 
-          const { userLastSeenAtChanged: { userId } } = payload
+          const { userLastSeenAtUpdated: { userId } } = payload
 
           return userIds.includes(userId)
         },
