@@ -41,7 +41,7 @@ input EditGamePlatformInput {
 input AddGamePlayedInput {
   userId: ID!
   gameId: ID!
-  gamePlatformId: ID
+  platformId: ID
   gamerTag: String
 }
 
@@ -49,7 +49,7 @@ input EditGamePlayedInput {
   id: ID!
   userId: ID
   gameId: ID
-  gamePlatformId: ID
+  platformId: ID
   gamerTag: String
 }
 

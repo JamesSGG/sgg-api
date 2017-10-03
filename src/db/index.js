@@ -287,6 +287,24 @@ export const getAllGames = findAllRecords('games')
 export const getAllGamePlatforms = findAllRecords('game_platforms')
 export const getAllGamesPlayed = findAllRecords('user_games_played')
 
+export async function getGamePlayed(id: string): Promise<Array<GamePlayed>> {
+  return db
+    .select(
+      'user_games_played.*',
+      'games.game_title',
+      'game_platforms.platform_name',
+    )
+    .from('user_games_played')
+    .where('user_games_played.id', id)
+    .leftOuterJoin('games', {
+      'user_games_played.game_id': 'games.id',
+    })
+    .leftOuterJoin('game_platforms', {
+      'user_games_played.platform_id': 'game_platforms.id',
+    })
+    .then(head)
+}
+
 export async function getUserGamesPlayed(userId: string): Promise<Array<GamePlayed>> {
   return db
     .select(

@@ -168,13 +168,39 @@ export default {
       return camelKeys(updatedGame)
     },
 
+    // TODO: Add resolver for root-level game played queries.
     async editGamePlayed(obj, args, context) {
       const { input } = args
-      const { queries: { camelKeys, editUserGamePlayed } } = context
+      const { queries: { camelKeys, editUserGamePlayed, getGamePlayed } } = context
 
-      const updatedGamePlayed = await editUserGamePlayed(input)
+      await editUserGamePlayed(input)
 
-      return camelKeys(updatedGamePlayed)
+      const gamePlayed = await getGamePlayed(input.id)
+
+      const {
+        game_id,
+        game_title,
+        platform_id,
+        platform_name,
+        ...remaining
+      } = gamePlayed
+
+      const result = {
+        ...camelKeys(remaining),
+        game: {
+          id: game_id,
+          game_title,
+        },
+        gamePlatform: {
+          id: platform_id,
+          platform_name,
+        },
+      }
+
+      console.log('---------- editGamePlayed ----------')
+      console.log(result)
+
+      return result
     },
 
     async deleteGamePlayed(obj, args, context) {
