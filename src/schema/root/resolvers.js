@@ -78,10 +78,15 @@ export default {
       const { id } = args
       const { queries: { bumpUserLastSeenAt } } = context
 
-      const result = await bumpUserLastSeenAt(id)
+      const lastSeenAt = await bumpUserLastSeenAt(id)
+
+      const result = {
+        userId: id,
+        lastSeenAt,
+      }
 
       pubsub.publish(USER_LAST_SEEN_AT_UPDATED, {
-        userLastSeenAtChanged: { userId: id, result },
+        userLastSeenAtChanged: result,
       })
 
       return result
