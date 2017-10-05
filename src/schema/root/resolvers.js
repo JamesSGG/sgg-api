@@ -175,11 +175,11 @@ export default {
 
     async createPlayedGame(obj, args, context) {
       const { input } = args
-      const { queries: { camelKeys, createPlayedGame } } = context
+      const { queries: { createPlayedGame } } = context
 
       const newPlayedGame = await createPlayedGame(input)
 
-      return camelKeys(newPlayedGame)
+      return newPlayedGame
     },
 
     async updatePlayedGame(obj, args, context) {
