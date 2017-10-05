@@ -123,8 +123,6 @@ export async function createUser(profile: LoginProfile): Promise<User> {
 
 export async function findUserById(userId: string) {
   return findRecord('users', userId)
-    .where({ id: userId })
-    .first()
 }
 
 export async function findUserByLogin(loginProvider: LoginProvider, loginId: string) {
