@@ -31,18 +31,16 @@ export default async function login(
   const { _json: profileRaw } = profile
 
   // Get logged-in user
-  let user = await findUser({ req, provider, profile })
+  const existingUser = await findUser({ req, provider, profile })
 
-  console.log('---------- existing user ----------')
-  console.log(user)
+  console.log('---------- after findUser ----------')
+  console.log(existingUser)
 
   // Create a new user if this is their first login
-  if (!user.id) {
-    user = await createUser(profile)
+  const user = existingUser || await createUser(profile)
 
-    console.log('---------- new user ----------')
-    console.log(user)
-  }
+  console.log('---------- after createUser (maybe) ----------')
+  console.log(user)
 
   // Save the user login to the DB for future reference
   await saveLogin({ provider, profile, tokens, user })
