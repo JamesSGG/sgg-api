@@ -67,7 +67,13 @@ export default async function login(
   const { email } = head(emails)
 
   if (email) {
-    addUserToList(listId, email)
+    try {
+      await addUserToList(listId, email)
+    }
+    catch (error) {
+      console.log('---------- MailChimp Error ----------')
+      console.log(error)
+    }
   }
 
   return user
