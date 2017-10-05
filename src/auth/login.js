@@ -42,14 +42,21 @@ export default async function login(
   // See if the user has any Facebook friends that have also joined SGG
   const { data: friendsList } = profileRaw.friends
 
+  console.log('---------- Friends List :: Raw ----------')
+  console.log(friendsList)
+
   if (friendsList && !isEmpty(friendsList)) {
     const findFriend = (friend) => findUserByLogin(provider, friend.id)
     const friends = await Promise.all(friendsList.map(findFriend))
+
+    console.log('---------- Friends List :: Users ----------')
+    console.log(friends)
 
     // If so, add them to the user's friends list
     if (friends && !isEmpty(friends)) {
       friends.forEach((friend) => {
         addFriendToUser(user.id, friend.id)
+        addFriendToUser(friend.id, user.id)
       })
     }
   }
