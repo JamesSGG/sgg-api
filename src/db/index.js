@@ -185,7 +185,7 @@ export async function findUser(args: FindUserArgs): Promise<?User> {
   }
 
   // Fix tiny Facebook profile photo
-  if (user.image_url.includes('50x50')) {
+  if (user.image_url && user.image_url.includes('50x50')) {
     user = {
       ...user,
       imageUrl,

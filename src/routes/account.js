@@ -56,7 +56,7 @@ function isValidReturnURL(url: string): boolean {
   })
 
   const urlOrigin = getOrigin(url)
-  const isAllowedOrigin = whitelist.includes(urlOrigin)
+  const isAllowedOrigin = whitelist && whitelist.includes(urlOrigin)
 
   return isValidUrl && isAllowedOrigin
 }
@@ -98,7 +98,7 @@ const getSuccessReturnUrl = (req) => {
     // originalMaxAge && `maxAge=${originalMaxAge}`,
   ]).join('&')
 
-  const separator = returnUrl.includes('?') ? '&' : '?'
+  const separator = (returnUrl || '').includes('?') ? '&' : '?'
 
   return `${returnUrl}${separator}${queryString}`
 }
