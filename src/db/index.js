@@ -81,7 +81,11 @@ async function _deleteRecord(tableName: string, id: string) {
 }
 
 export function findAllRecords(tableName: string) {
-  return async () => db.select('*').from(tableName)
+  return async function _findAllRecords() {
+    return db
+      .select('*')
+      .from(tableName)
+  }
 }
 
 export const findRecord = curry(_findRecord)
@@ -98,10 +102,12 @@ export async function createUser(profile: LoginProfile): Promise<User> {
 
   const { value: imageUrl } = head(photos) || {}
 
-  const emailData = emails.map((email) => ({
-    email: email.value,
-    verified: Boolean(email.verified),
-  }))
+  const parseEmail = ({ value, verified }) => ({
+    email: value,
+    verified: Boolean(verified),
+  })
+
+  const emailData = emails.map(parseEmail)
 
   const dbRecord = snakeKeys({
     displayName,
@@ -109,18 +115,12 @@ export async function createUser(profile: LoginProfile): Promise<User> {
     emails: JSON.stringify(emailData),
   })
 
-  return db
-    .table('users')
-    .insert(dbRecord)
-    .returning('*')
-    .then(head)
+  return createRecord('users', dbRecord)
 }
 
 export const deleteUser = deleteRecord('users')
 
-export async function findUserById(userId: string) {
-  return findRecord('users', userId)
-}
+export const findUserById = findRecord('users')
 
 export async function findUserByLogin(loginProvider: LoginProvider, loginId: string) {
   return db
@@ -191,9 +191,7 @@ export async function findUser(args: FindUserArgs): Promise<?User> {
     await db
       .table('users')
       .where('id', user.id)
-      .update({
-        image_url: imageUrl,
-      })
+      .update({ image_url: imageUrl })
   }
 
   return camelKeys(user)
@@ -344,7 +342,7 @@ export async function bumpUserLastSeenAt(userId: string): Promise<String> {
   return db
     .table('users')
     .where('id', userId)
-    .update('last_seen_at', db.fn.now())
+    .update('last_seen_at', db.raw('CURRENT_TIMESTAMP'))
     .returning('last_seen_at')
     .then(head)
 }

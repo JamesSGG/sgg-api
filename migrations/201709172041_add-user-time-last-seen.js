@@ -6,7 +6,7 @@ module.exports.up = async (db) => {
     table
       .dateTime('last_seen_at')
       .notNullable()
-      .defaultTo(db.fn.now())
+      .defaultTo(db.raw('CURRENT_TIMESTAMP'))
   })
 }
 
