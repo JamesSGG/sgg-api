@@ -226,6 +226,14 @@ export async function saveLogin(args: SaveLoginArgs) {
   const { id, username, _json: profileRaw } = profile
   const { id: userId } = user
 
+  console.log('---------- saveLogin ----------')
+  console.log(`ID: ${id}`)
+  console.log(`userId: ${userId}`)
+  console.log(`Provider: ${provider}`)
+  console.log('profile:')
+  console.log(profile)
+  console.log('-------------------------------')
+
   const loginKeys = {
     id,
     provider,
