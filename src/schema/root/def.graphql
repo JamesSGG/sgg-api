@@ -38,14 +38,14 @@ input UpdateGamePlatformInput {
   platformName: String
 }
 
-input CreateGamePlayedInput {
+input CreatePlayedGameInput {
   userId: ID!
   gameId: ID!
   platformId: ID
   gamerTag: String
 }
 
-input UpdateGamePlayedInput {
+input UpdatePlayedGameInput {
   id: ID!
   userId: ID
   gameId: ID
@@ -77,7 +77,7 @@ type Query {
   gamePlatforms: [GamePlatform]
 
   # Fetch all games played
-  gamesPlayed: [GamePlayed]
+  gamesPlayed: [PlayedGame]
 
   # Fetch a specific user by ID
   user(id: ID!): User
@@ -116,13 +116,13 @@ type Mutation {
   deleteGamePlatform(id: ID!): ID
 
   # Creates a game that a user has played
-  createGamePlayed(input: CreateGamePlayedInput!): GamePlayed
+  createPlayedGame(input: CreatePlayedGameInput!): PlayedGame
 
   # Updates an existing game that a user has played
-  updateGamePlayed(input: UpdateGamePlayedInput!): GamePlayed
+  updatePlayedGame(input: UpdatePlayedGameInput!): PlayedGame
 
   # Deletes an existing game that a user has played
-  deleteGamePlayed(id: ID!): ID
+  deletePlayedGame(id: ID!): ID
 }
 
 type Subscription {

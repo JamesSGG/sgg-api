@@ -173,31 +173,31 @@ export default {
       return id
     },
 
-    async createGamePlayed(obj, args, context) {
+    async createPlayedGame(obj, args, context) {
       const { input } = args
-      const { queries: { camelKeys, createGamePlayed } } = context
+      const { queries: { camelKeys, createPlayedGame } } = context
 
-      const newGame = await createGamePlayed(input)
+      const newPlayedGame = await createPlayedGame(input)
 
-      return camelKeys(newGame)
+      return camelKeys(newPlayedGame)
     },
 
-    async updateGamePlayed(obj, args, context) {
+    async updatePlayedGame(obj, args, context) {
       const { input } = args
-      const { queries: { updateUserGamePlayed, getGamePlayed } } = context
+      const { queries: { updatePlayedGame, findPlayedGame } } = context
 
-      await updateUserGamePlayed(input)
+      await updatePlayedGame(input)
 
-      const gamePlayed = await getGamePlayed(input.id)
+      const updatedPlayedGame = await findPlayedGame(input.id)
 
-      return gamePlayed
+      return updatedPlayedGame
     },
 
-    async deleteGamePlayed(obj, args, context) {
+    async deletePlayedGame(obj, args, context) {
       const { id } = args
-      const { queries: { deleteUserGamePlayed } } = context
+      const { queries: { deletePlayedGame } } = context
 
-      await deleteUserGamePlayed(id)
+      await deletePlayedGame(id)
 
       return id
     },

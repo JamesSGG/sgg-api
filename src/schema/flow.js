@@ -47,7 +47,7 @@ export type GamePlatform = {
 }
 
 // A game that has been played by a user
-export type GamePlayed = {
+export type PlayedGame = {
   // The title of the game
   title: ?string,
 
@@ -76,14 +76,14 @@ export type UpdateGamePlatformInput = {
   gamePlatform: string,
 }
 
-export type CreateGamePlayedInput = {
+export type CreatePlayedGameInput = {
   userId: ID,
   gameTitle: string,
   gamePlatform: string,
   gamerTag?: string,
 }
 
-export type UpdateGamePlayedInput = {
+export type UpdatePlayedGameInput = {
   id: ID,
   userId?: ID,
   gameTitle?: string,
@@ -129,7 +129,7 @@ export type User = {
   emails: ?Array<UserEmail>,
 
   // Games played
-  gamesPlayed: ?Array<GamePlayed>,
+  gamesPlayed: ?Array<PlayedGame>,
 
   // Friends
   friends: ?Array<User>,

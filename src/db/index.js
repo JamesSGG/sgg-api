@@ -21,14 +21,8 @@ import type {
   LoginProvider,
   LoginProfile,
   LoginTokens,
-  GamePlayed,
+  PlayedGame,
   AddFriendResult,
-  // AddGameInput,
-  // AddGamePlatformInput,
-  // AddGamePlayedInput,
-  // EditGameInput,
-  // EditGamePlatformInput,
-  // EditGamePlayedInput,
 } from '../schema/flow'
 
 const { DATABASE_URL, DATABASE_DEBUG } = process.env
@@ -229,14 +223,6 @@ export async function saveLogin(args: SaveLoginArgs) {
   const { id, username, _json: profileRaw } = profile
   const { id: userId } = user
 
-  console.log('---------- saveLogin ----------')
-  console.log(`ID: ${id}`)
-  console.log(`userId: ${userId}`)
-  console.log(`Provider: ${provider}`)
-  console.log('profile:')
-  console.log(profile)
-  console.log('-------------------------------')
-
   const loginKeys = {
     id,
     provider,
@@ -296,7 +282,7 @@ export const findAllGames = findAllRecords('games')
 export const findAllGamePlatforms = findAllRecords('game_platforms')
 export const findAllGamesPlayed = findAllRecords('user_games_played')
 
-export async function getGamePlayed(id: string): Promise<Array<GamePlayed>> {
+export async function findPlayedGame(id: string): Promise<Array<PlayedGame>> {
   return db
     .select(
       'user_games_played.*',
@@ -314,7 +300,7 @@ export async function getGamePlayed(id: string): Promise<Array<GamePlayed>> {
     .then(head)
 }
 
-export async function getUserGamesPlayed(userId: string): Promise<Array<GamePlayed>> {
+export async function findPlayedGamesForUser(userId: string): Promise<Array<PlayedGame>> {
   return db
     .select(
       'user_games_played.*',
@@ -371,9 +357,9 @@ export const createGamePlatform = createRecord('game_platforms')
 export const updateGamePlatform = updateRecord('game_platforms')
 export const deleteGamePlatform = deleteRecord('game_platforms')
 
-export const createUserGamePlayed = createRecord('user_games_played')
-export const updateUserGamePlayed = updateRecord('user_games_played')
-export const deleteUserGamePlayed = deleteRecord('user_games_played')
+export const createPlayedGame = createRecord('user_games_played')
+export const updatePlayedGame = updateRecord('user_games_played')
+export const deletePlayedGame = deleteRecord('user_games_played')
 
 
 export async function addFriendToUser(

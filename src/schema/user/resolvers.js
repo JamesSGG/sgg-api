@@ -2,7 +2,7 @@
 import { property, isEmpty } from 'lodash/fp'
 
 export default {
-  GamePlayed: {
+  PlayedGame: {
     id(obj) {
       return obj.id
     },
@@ -67,9 +67,9 @@ export default {
       return null
     },
     async gamesPlayed(obj, args, context) {
-      const { queries: { getUserGamesPlayed } } = context
+      const { queries: { findPlayedGamesForUser } } = context
 
-      const gamesPlayed = await getUserGamesPlayed(obj.id)
+      const gamesPlayed = await findPlayedGamesForUser(obj.id)
 
       return gamesPlayed
     },

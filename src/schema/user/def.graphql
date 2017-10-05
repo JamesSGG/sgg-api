@@ -1,6 +1,6 @@
 
 # A game that has been played by a user
-type GamePlayed {
+type PlayedGame {
   # Record ID
   id: ID!
 
@@ -47,7 +47,7 @@ type User {
   emails: [Email]
 
   # Games played
-  gamesPlayed: [GamePlayed]
+  gamesPlayed: [PlayedGame]
 
   # Friends
   friends: [User]
