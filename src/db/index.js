@@ -121,6 +121,8 @@ export async function createUser(profile: LoginProfile): Promise<User> {
     .then(head)
 }
 
+export const deleteUser = deleteRecord('users')
+
 export async function findUserById(userId: string) {
   return findRecord('users', userId)
 }

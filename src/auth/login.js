@@ -33,6 +33,9 @@ export default async function login(
   // Get logged-in user
   let user = await findUser({ req, provider, profile })
 
+  console.log('---------- login::findUser ----------')
+  console.log(user)
+
   // Create a new user if this is their first login
   if (!user) {
     user = await createUser(profile)

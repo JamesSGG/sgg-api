@@ -94,6 +94,9 @@ type Mutation {
   # Adds a friend to a user
   addFriendToUser(input: AddFriendInput!): AddFriendResult
 
+  # Deletes an existing user
+  deleteUser(id: ID!): ID
+
   # Creates a new game
   createGame(input: CreateGameInput!): Game
 

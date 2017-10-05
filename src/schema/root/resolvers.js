@@ -110,6 +110,15 @@ export default {
       return resultA
     },
 
+    async deleteUser(obj, args, context) {
+      const { id } = args
+      const { queries: { deleteUser } } = context
+
+      await deleteUser(id)
+
+      return id
+    },
+
     async createGame(obj, args, context) {
       const { input } = args
       const { queries: { createGame } } = context
