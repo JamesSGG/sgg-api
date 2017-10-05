@@ -54,6 +54,7 @@ async function _findRecord(tableName: string, id: string) {
     .select('*')
     .from(tableName)
     .where('id', id)
+    .then(head)
 }
 
 async function _createRecord(tableName: string, input: *) {
